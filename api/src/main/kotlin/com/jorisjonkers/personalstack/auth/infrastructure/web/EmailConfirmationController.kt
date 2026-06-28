@@ -30,6 +30,7 @@ class EmailConfirmationController(
     fun resendConfirmation(
         @Valid @RequestBody request: ResendConfirmationRequest,
     ): ResponseEntity<Map<String, String>> {
+        validateRequestBody(request)
         commandBus.dispatch(ResendConfirmationCommand(request.email))
         return ResponseEntity.ok(
             mapOf(

@@ -24,6 +24,7 @@ class UserRegistrationController(
     fun register(
         @Valid @RequestBody request: RegisterUserRequest,
     ): UserResponse {
+        validateRequestBody(request)
         val command =
             RegisterUserCommand(
                 username = request.username,

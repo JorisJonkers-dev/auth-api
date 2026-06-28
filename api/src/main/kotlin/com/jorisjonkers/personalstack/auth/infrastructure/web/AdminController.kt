@@ -57,6 +57,7 @@ class AdminController(
         @PathVariable id: UUID,
         @Valid @RequestBody request: UpdateRoleRequest,
     ): ResponseEntity<AdminUserResponse> {
+        validateRequestBody(request)
         val role = parseRole(request.role)
         val updated = updateUserRoleCommandHandler.handle(UpdateUserRoleCommand(UserId(id), role))
         return ResponseEntity.ok(AdminUserResponse.from(updated))

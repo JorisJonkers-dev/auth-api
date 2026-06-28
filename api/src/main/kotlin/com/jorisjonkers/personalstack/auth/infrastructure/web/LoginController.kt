@@ -40,6 +40,7 @@ class LoginController(
     fun login(
         @Valid @RequestBody request: LoginRequest,
     ): ResponseEntity<LoginResponse> {
+        validateRequestBody(request)
         val credentials =
             userRepository.findCredentialsByUsername(request.username)
                 ?: throw InvalidCredentialsException()
@@ -74,6 +75,7 @@ class LoginController(
     fun totpChallenge(
         @Valid @RequestBody request: TotpChallengeRequest,
     ): ResponseEntity<LoginResponse> {
+        validateRequestBody(request)
         val jwt = decodeChallengeToken(request.totpChallengeToken)
         val userId = UserId(UUID.fromString(jwt.subject))
 
@@ -100,6 +102,7 @@ class LoginController(
     fun refresh(
         @Valid @RequestBody request: RefreshRequest,
     ): ResponseEntity<TokenResponse> {
+        validateRequestBody(request)
         val credentials = resolveRefreshCredentials(request.refreshToken)
 
         val userId = credentials.userId.value.toString()

@@ -7,8 +7,10 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.core.MethodParameter
 import org.springframework.http.HttpStatus
+import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.validation.BeanPropertyBindingResult
 import org.springframework.web.bind.MethodArgumentNotValidException
+import org.springframework.web.context.request.ServletWebRequest
 import java.net.URI
 
 class GlobalExceptionHandlerTest {
@@ -55,7 +57,11 @@ class GlobalExceptionHandlerTest {
             )
         val ex = MethodArgumentNotValidException(methodParameter, bindingResult)
 
-        val response = handler.handleValidation(ex, null)
+        val response =
+            AuthExceptionHandler().handleMethodArgumentNotValid(
+                ex,
+                ServletWebRequest(MockHttpServletRequest()),
+            )
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY)
         val body = response.body!!

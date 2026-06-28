@@ -39,6 +39,7 @@ class SessionLoginController(
         @Valid @RequestBody request: SessionLoginRequest,
         httpRequest: HttpServletRequest,
     ): ResponseEntity<SessionLoginResponse> {
+        validateRequestBody(request)
         val credentials = authenticate(request.username, request.password)
 
         val totpResult = handleTotp(credentials, request.totpCode)

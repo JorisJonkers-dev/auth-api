@@ -29,6 +29,7 @@ class PasswordController(
         @AuthenticationPrincipal user: AuthenticatedUser,
         @Valid @RequestBody request: ChangePasswordRequest,
     ) {
+        validateRequestBody(request)
         commandBus.dispatch(
             ChangePasswordCommand(
                 userId = user.userIdValue(),
@@ -42,6 +43,7 @@ class PasswordController(
     fun forgotPassword(
         @Valid @RequestBody request: ForgotPasswordRequest,
     ): ResponseEntity<Map<String, String>> {
+        validateRequestBody(request)
         commandBus.dispatch(ForgotPasswordCommand(email = request.email))
         return ResponseEntity.ok(
             mapOf("message" to "If an account with that email exists, a password reset link has been sent."),
@@ -52,6 +54,7 @@ class PasswordController(
     fun resetPassword(
         @Valid @RequestBody request: ResetPasswordRequest,
     ): ResponseEntity<Map<String, String>> {
+        validateRequestBody(request)
         commandBus.dispatch(
             ResetPasswordCommand(
                 token = request.token,

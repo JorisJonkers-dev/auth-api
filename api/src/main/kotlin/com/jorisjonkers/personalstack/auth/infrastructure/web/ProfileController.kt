@@ -35,6 +35,7 @@ class ProfileController(
         @AuthenticationPrincipal user: AuthenticatedUser,
         @Valid @RequestBody request: UpdateProfileRequest,
     ): ProfileResponse {
+        validateRequestBody(request)
         commandBus.dispatch(
             UpdateProfileCommand(
                 userId = user.userIdValue(),
