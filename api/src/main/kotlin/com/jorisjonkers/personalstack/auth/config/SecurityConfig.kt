@@ -34,6 +34,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import org.springframework.web.filter.OncePerRequestFilter
 import java.net.URLEncoder
 
+private const val FORWARD_AUTH_SECURITY_ORDER = 2
+private const val APPLICATION_SECURITY_ORDER = 3
+
 /**
  * Browser requests keep using the session cookie, while native clients may
  * authenticate protected REST endpoints with Authorization-Server JWTs.
@@ -49,7 +52,7 @@ class SecurityConfig(
     private val cookieDomain: String,
 ) {
     @Bean
-    @Order(2)
+    @Order(FORWARD_AUTH_SECURITY_ORDER)
     fun forwardAuthSecurityFilterChain(
         http: HttpSecurity,
         corsConfigurationSource: CorsConfigurationSource,
@@ -65,7 +68,7 @@ class SecurityConfig(
     }
 
     @Bean
-    @Order(3)
+    @Order(APPLICATION_SECURITY_ORDER)
     fun applicationSecurityFilterChain(
         http: HttpSecurity,
         corsConfigurationSource: CorsConfigurationSource,

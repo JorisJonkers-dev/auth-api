@@ -64,11 +64,20 @@ tasks.named<Test>("integrationTest") {
     }
 }
 
+tasks
+    .matching { it.name.startsWith("runKtlint") && it.name.endsWith("OverMainSourceSet") }
+    .configureEach {
+        dependsOn("generateJooq")
+    }
+
 tasks.register<Test>("exportOpenApiSpec") {
     description = "Exports the OpenAPI spec to client-spec/openapi/auth-api.json from a springdoc MVC slice"
     group = "documentation"
     testClassesDirs = sourceSets["integrationTest"].output.classesDirs
     classpath = sourceSets["integrationTest"].runtimeClasspath
+    extensions.configure<org.gradle.testing.jacoco.plugins.JacocoTaskExtension> {
+        isEnabled = false
+    }
     useJUnitPlatform {
         includeTags("contract-export")
     }

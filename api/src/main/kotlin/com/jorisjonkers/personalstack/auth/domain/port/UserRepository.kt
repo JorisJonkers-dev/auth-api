@@ -5,6 +5,7 @@ import com.jorisjonkers.personalstack.auth.domain.model.User
 import com.jorisjonkers.personalstack.auth.domain.model.UserCredentials
 import com.jorisjonkers.personalstack.auth.domain.model.UserId
 
+@Suppress("TooManyFunctions")
 interface UserRepository {
     fun findById(id: UserId): User?
 

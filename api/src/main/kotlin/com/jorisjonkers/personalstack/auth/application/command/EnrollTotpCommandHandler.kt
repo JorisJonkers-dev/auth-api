@@ -27,4 +27,8 @@ class EnrollTotpCommandHandler(
     }
 }
 
-class TotpAlreadyEnrolledException : DomainException("TOTP is already enabled for this account", "TOTP_ALREADY_ENROLLED")
+class TotpAlreadyEnrolledException :
+    DomainException(
+        "TOTP is already enabled for this account",
+        "TOTP_ALREADY_ENROLLED",
+    )

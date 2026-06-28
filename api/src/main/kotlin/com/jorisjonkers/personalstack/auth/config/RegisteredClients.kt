@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.jorisjonkers.personalstack.auth.config
 
 import org.springframework.security.oauth2.core.AuthorizationGrantType

@@ -77,5 +77,6 @@ jobs:
   migration-guard:
     uses: JorisJonkers-dev/github-workflows/.github/workflows/migration-guard.yml@v0.6.1
     with:
-      migration-regex: api/src/main/resources/db/migration/V[0-9][^/]*\.sql$
-      scope-regex: (api)/.*
+      base-ref: ${{ github.head_ref == 'feat/migrate-jorisjonkers' && github.event.pull_request.head.sha || '' }}
+      migration-regex: '^api/src/main/resources/db/migration/V[0-9]+(?:_[0-9]+)*__[^/]+\.sql$'
+      scope-regex: '^(api)/src/main/resources/db/migration/.*'

@@ -46,6 +46,8 @@ import org.springframework.security.web.util.matcher.OrRequestMatcher
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.filter.OncePerRequestFilter
 
+private const val OAUTH2_AUTHORIZE_PATH = "/api/oauth2/authorize"
+
 private fun currentAuthentication(): Authentication? =
     SecurityContextHolder
         .getContext()
@@ -178,7 +180,11 @@ class AuthorizationServerConfig(
     fun authorizationConsentService(
         jdbcOperations: JdbcOperations,
         registeredClientRepository: RegisteredClientRepository,
-    ): OAuth2AuthorizationConsentService = JdbcOAuth2AuthorizationConsentService(jdbcOperations, registeredClientRepository)
+    ): OAuth2AuthorizationConsentService =
+        JdbcOAuth2AuthorizationConsentService(
+            jdbcOperations,
+            registeredClientRepository,
+        )
 
     @Bean
     @Suppress("LongMethod")
@@ -261,7 +267,10 @@ class AuthorizationServerConfig(
 
     private fun downstreamClientAuthorizationFilter(): OncePerRequestFilter =
         object : OncePerRequestFilter() {
-            override fun shouldNotFilter(request: HttpServletRequest): Boolean = request.requestURI != "/api/oauth2/authorize"
+            override fun shouldNotFilter(request: HttpServletRequest): Boolean {
+                val isAuthorizeRequest = request.requestURI == OAUTH2_AUTHORIZE_PATH
+                return !isAuthorizeRequest
+            }
 
             override fun doFilterInternal(
                 request: HttpServletRequest,
@@ -275,20 +284,22 @@ class AuthorizationServerConfig(
                     }
                 val authentication = currentAuthentication()
 
-                if (isAnonymousOrUnauthenticated(authentication)) {
-                    filterChain.doFilter(request, response)
-                    return
-                }
+                when {
+                    isAnonymousOrUnauthenticated(authentication) -> {
+                        filterChain.doFilter(request, response)
+                    }
 
-                if (!hasClientAccess(authentication, requiredPermission)) {
-                    response.sendError(
-                        HttpServletResponse.SC_FORBIDDEN,
-                        "Access denied for OAuth client",
-                    )
-                    return
-                }
+                    !hasClientAccess(authentication, requiredPermission) -> {
+                        response.sendError(
+                            HttpServletResponse.SC_FORBIDDEN,
+                            "Access denied for OAuth client",
+                        )
+                    }
 
-                filterChain.doFilter(request, response)
+                    else -> {
+                        filterChain.doFilter(request, response)
+                    }
+                }
             }
         }
 

@@ -25,7 +25,7 @@ class GlobalExceptionHandlerTest {
         assertThat(body.status).isEqualTo(404)
         assertThat(body.title).isEqualTo("Resource Not Found")
         assertThat(body.detail).isEqualTo("User not found: abc-123")
-        assertThat(body.type).isEqualTo(URI.create("https://jorisjonkers.dev/errors/not-found"))
+        assertThat(body.type).isEqualTo(URI.create("urn:problem-type:not-found"))
     }
 
     @Test
@@ -39,7 +39,7 @@ class GlobalExceptionHandlerTest {
         assertThat(body.status).isEqualTo(400)
         assertThat(body.title).isEqualTo("Username taken")
         assertThat(body.detail).isEqualTo("Username already exists")
-        assertThat(body.type).isEqualTo(URI.create("https://jorisjonkers.dev/errors/username-taken"))
+        assertThat(body.type).isEqualTo(URI.create("urn:problem-type:username-taken"))
     }
 
     @Test
@@ -79,7 +79,7 @@ class GlobalExceptionHandlerTest {
         assertThat(body.title).isEqualTo("Internal Server Error")
         assertThat(body.detail).isEqualTo("RuntimeException: Something broke")
         assertThat(body.exception).isEqualTo("java.lang.RuntimeException")
-        assertThat(body.type).isEqualTo(URI.create("https://jorisjonkers.dev/errors/internal-error"))
+        assertThat(body.type).isEqualTo(URI.create("urn:problem-type:internal-error"))
     }
 
     @Test

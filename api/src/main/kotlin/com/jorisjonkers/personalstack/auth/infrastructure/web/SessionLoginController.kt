@@ -78,14 +78,22 @@ class SessionLoginController(
         credentials: UserCredentials,
         totpCode: String?,
     ): ResponseEntity<SessionLoginResponse>? {
-        if (!credentials.totpEnabled) return null
-        if (totpCode == null) return ResponseEntity.ok(SessionLoginResponse(totpRequired = true))
-        val secret = credentials.totpSecret ?: throw InvalidCredentialsException()
-        if (!totpService.verifyCode(secret, totpCode)) {
-            throw com.jorisjonkers.personalstack.auth.application.command
-                .InvalidTotpCodeException()
+        if (!credentials.totpEnabled) {
+            return null
         }
-        return null
+
+        return when {
+            totpCode == null -> ResponseEntity.ok(SessionLoginResponse(totpRequired = true))
+            !totpService.verifyCode(
+                credentials.totpSecret ?: throw InvalidCredentialsException(),
+                totpCode,
+            ) -> {
+                throw com.jorisjonkers.personalstack.auth.application.command
+                    .InvalidTotpCodeException()
+            }
+
+            else -> null
+        }
     }
 
     private fun establishSession(

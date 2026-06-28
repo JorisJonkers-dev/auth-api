@@ -165,7 +165,12 @@ class JooqUserRepository(
     override fun existsByUsername(username: String): Boolean =
         dsl.fetchExists(dsl.selectFrom(APP_USER).where(APP_USER.USERNAME.eq(username)))
 
-    override fun existsByEmail(email: String): Boolean = dsl.fetchExists(dsl.selectFrom(APP_USER).where(APP_USER.EMAIL.eq(email)))
+    override fun existsByEmail(email: String): Boolean =
+        dsl.fetchExists(
+            dsl
+                .selectFrom(APP_USER)
+                .where(APP_USER.EMAIL.eq(email)),
+        )
 
     override fun updatePassword(
         userId: UserId,
