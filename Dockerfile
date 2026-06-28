@@ -9,8 +9,6 @@ COPY gradle/ gradle/
 COPY api/build.gradle.kts api/
 COPY client-spec/build.gradle.kts client-spec/
 COPY client-spec/openapi/auth-api.json client-spec/openapi/auth-api.json
-COPY clients/java/build.gradle.kts clients/java/
-COPY clients/kotlin/build.gradle.kts clients/kotlin/
 
 # Resolve dependencies (cached unless build files change)
 RUN --mount=type=secret,id=github_token \

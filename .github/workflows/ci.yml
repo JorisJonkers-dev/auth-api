@@ -20,23 +20,27 @@ jobs:
         :api:integrationTest
         :api:jacocoTestCoverageVerification
         :api:exportOpenApiSpec
-        :client-spec:check
-        :clients:java:build
-        :clients:kotlin:build
-        publishToMavenLocal
     secrets:
       packages-token: ${{ secrets.GITHUB_TOKEN }}
 
-  node:
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/node-ci.yml@v0.6.1
+  client-dry-run:
+    name: Client Dry Run
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/publish-api-clients.yml@v0.7.0
+    permissions:
+      contents: read
+      packages: read
     with:
-      package-manager: pnpm
-      build-command: >-
-        pnpm --filter @jorisjonkers-dev/auth-api-client generate
-        && pnpm --filter @jorisjonkers-dev/auth-api-client build
-      package-check-command: pnpm --filter @jorisjonkers-dev/auth-api-client pack:dry-run
+      spec-path: client-spec/openapi/auth-api.json
+      api-name: auth-api
+      version: 0.0.0-ci.${{ github.run_number }}.${{ github.run_attempt }}
+      ts-package: "@jorisjonkers-dev/auth-api-client"
+      maven-group: dev.jorisjonkers
+      java-artifact: auth-api-client-java
+      kotlin-artifact: auth-api-client-kotlin
+      dry-run: true
     secrets:
       packages-token: ${{ secrets.GITHUB_TOKEN }}
+      node-auth-token: ${{ secrets.GITHUB_TOKEN }}
 
   contract-drift:
     runs-on: ubuntu-latest
