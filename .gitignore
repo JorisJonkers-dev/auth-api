@@ -1,0 +1,12 @@
+.gradle/
+build/
+**/build/
+
+node_modules/
+dist/
+clients/typescript/src/generated/
+
+*.iml
+.idea/
+
+!gradle/wrapper/gradle-wrapper.jar

@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: read
+  pull-requests: read
+
+jobs:
+  jvm:
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@v0.6.1
+    with:
+      lint-gradle-args: :api:detekt :api:ktlintCheck
+      test-gradle-args: >-
+        :api:test
+        :api:integrationTest
+        :api:jacocoTestCoverageVerification
+        :api:exportOpenApiSpec
+        :client-spec:check
+        :clients:java:build
+        :clients:kotlin:build
+        publishToMavenLocal
+    secrets:
+      packages-token: ${{ secrets.GITHUB_TOKEN }}
+
+  node:
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/node-ci.yml@v0.6.1
+    with:
+      package-manager: pnpm
+      build-command: >-
+        pnpm --filter @jorisjonkers-dev/auth-api-client generate
+        && pnpm --filter @jorisjonkers-dev/auth-api-client build
+      package-check-command: pnpm --filter @jorisjonkers-dev/auth-api-client pack:dry-run
+    secrets:
+      packages-token: ${{ secrets.GITHUB_TOKEN }}
+
+  contract-drift:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: Export OpenAPI spec
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: ./gradlew :api:exportOpenApiSpec --no-daemon
+
+      - name: Check OpenAPI spec drift
+        run: git diff --exit-code -- client-spec/openapi/auth-api.json
+
+  docker:
+    needs: [jvm]
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/docker-image-ci.yml@v0.6.1
+    with:
+      image-name: auth-api/auth-api
+      context: .
+      dockerfile: Dockerfile
+      build-args: |
+        GIT_SHA=${{ github.sha }}
+    secrets:
+      packages-token: ${{ secrets.GITHUB_TOKEN }}
+
+  migration-guard:
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/migration-guard.yml@v0.6.1
+    with:
+      migration-regex: api/src/main/resources/db/migration/V[0-9][^/]*\.sql$
+      scope-regex: (api)/.*

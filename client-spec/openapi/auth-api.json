@@ -1,0 +1,844 @@
+{
+  "components": {
+    "parameters": {
+      "UserIdPath": {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "schema": { "format": "uuid", "type": "string" }
+      }
+    },
+    "schemas": {
+      "AdminUserResponse": {
+        "properties": {
+          "createdAt": { "format": "date-time", "type": "string" },
+          "email": { "format": "email", "type": "string" },
+          "emailConfirmed": { "type": "boolean" },
+          "firstName": { "type": "string" },
+          "id": { "format": "uuid", "type": "string" },
+          "lastName": { "type": "string" },
+          "role": { "type": "string" },
+          "servicePermissions": {
+            "items": { "type": "string" },
+            "type": "array"
+          },
+          "totpEnabled": { "type": "boolean" },
+          "username": { "type": "string" }
+        },
+        "required": [
+          "createdAt",
+          "email",
+          "emailConfirmed",
+          "firstName",
+          "id",
+          "lastName",
+          "role",
+          "servicePermissions",
+          "totpEnabled",
+          "username"
+        ],
+        "type": "object"
+      },
+      "ChangePasswordRequest": {
+        "properties": {
+          "currentPassword": { "type": "string" },
+          "newPassword": { "minLength": 8, "type": "string" }
+        },
+        "required": ["currentPassword", "newPassword"],
+        "type": "object"
+      },
+      "ForgotPasswordRequest": {
+        "properties": {
+          "email": { "format": "email", "type": "string" }
+        },
+        "required": ["email"],
+        "type": "object"
+      },
+      "HealthResponse": {
+        "properties": {
+          "service": { "example": "auth-api", "type": "string" },
+          "status": { "example": "ok", "type": "string" }
+        },
+        "required": ["service", "status"],
+        "type": "object"
+      },
+      "LoginRequest": {
+        "properties": {
+          "password": { "type": "string" },
+          "username": { "type": "string" }
+        },
+        "required": ["password", "username"],
+        "type": "object"
+      },
+      "LoginResponse": {
+        "properties": {
+          "accessToken": { "nullable": true, "type": "string" },
+          "expiresIn": { "format": "int64", "nullable": true, "type": "integer" },
+          "refreshToken": { "nullable": true, "type": "string" },
+          "tokenType": { "default": "Bearer", "type": "string" },
+          "totpChallengeToken": { "nullable": true, "type": "string" },
+          "totpRequired": { "type": "boolean" }
+        },
+        "required": ["tokenType", "totpRequired"],
+        "type": "object"
+      },
+      "MessageResponse": {
+        "properties": {
+          "message": { "type": "string" }
+        },
+        "required": ["message"],
+        "type": "object"
+      },
+      "ProblemDetail": {
+        "properties": {
+          "detail": { "type": "string" },
+          "exception": { "nullable": true, "type": "string" },
+          "instance": { "nullable": true, "type": "string" },
+          "status": { "format": "int32", "type": "integer" },
+          "title": { "type": "string" },
+          "type": { "format": "uri", "type": "string" }
+        },
+        "required": ["detail", "status", "title", "type"],
+        "type": "object"
+      },
+      "ProfileResponse": {
+        "properties": {
+          "createdAt": { "format": "date-time", "type": "string" },
+          "email": { "format": "email", "type": "string" },
+          "firstName": { "type": "string" },
+          "id": { "format": "uuid", "type": "string" },
+          "lastName": { "type": "string" },
+          "role": { "type": "string" },
+          "totpEnabled": { "type": "boolean" },
+          "username": { "type": "string" }
+        },
+        "required": [
+          "createdAt",
+          "email",
+          "firstName",
+          "id",
+          "lastName",
+          "role",
+          "totpEnabled",
+          "username"
+        ],
+        "type": "object"
+      },
+      "RefreshRequest": {
+        "properties": {
+          "refreshToken": { "type": "string" }
+        },
+        "required": ["refreshToken"],
+        "type": "object"
+      },
+      "RegisterUserRequest": {
+        "properties": {
+          "email": { "format": "email", "type": "string" },
+          "firstName": { "maxLength": 100, "minLength": 1, "type": "string" },
+          "lastName": { "maxLength": 100, "minLength": 1, "type": "string" },
+          "password": { "minLength": 8, "type": "string" },
+          "username": {
+            "maxLength": 50,
+            "minLength": 3,
+            "pattern": "^[a-zA-Z0-9_-]+$",
+            "type": "string"
+          }
+        },
+        "required": ["email", "firstName", "lastName", "password", "username"],
+        "type": "object"
+      },
+      "ResendConfirmationRequest": {
+        "properties": {
+          "email": { "format": "email", "type": "string" }
+        },
+        "required": ["email"],
+        "type": "object"
+      },
+      "ResetPasswordRequest": {
+        "properties": {
+          "newPassword": { "minLength": 8, "type": "string" },
+          "token": { "type": "string" }
+        },
+        "required": ["newPassword", "token"],
+        "type": "object"
+      },
+      "SessionLoginRequest": {
+        "properties": {
+          "password": { "type": "string" },
+          "totpCode": { "nullable": true, "type": "string" },
+          "username": { "type": "string" }
+        },
+        "required": ["password", "username"],
+        "type": "object"
+      },
+      "SessionLoginResponse": {
+        "properties": {
+          "success": { "default": false, "type": "boolean" },
+          "totpRequired": { "default": false, "type": "boolean" },
+          "user": {
+            "allOf": [{ "$ref": "#/components/schemas/SessionUserResponse" }],
+            "nullable": true
+          }
+        },
+        "required": ["success", "totpRequired"],
+        "type": "object"
+      },
+      "SessionUserResponse": {
+        "properties": {
+          "email": { "default": "", "format": "email", "type": "string" },
+          "firstName": { "default": "", "type": "string" },
+          "id": { "type": "string" },
+          "lastName": { "default": "", "type": "string" },
+          "role": { "type": "string" },
+          "roles": {
+            "items": { "type": "string" },
+            "type": "array"
+          },
+          "username": { "type": "string" }
+        },
+        "required": ["id", "role", "username"],
+        "type": "object"
+      },
+      "TokenResponse": {
+        "properties": {
+          "accessToken": { "type": "string" },
+          "expiresIn": { "format": "int64", "type": "integer" },
+          "refreshToken": { "type": "string" },
+          "tokenType": { "default": "Bearer", "type": "string" }
+        },
+        "required": ["accessToken", "expiresIn", "refreshToken", "tokenType"],
+        "type": "object"
+      },
+      "TotpChallengeRequest": {
+        "properties": {
+          "code": { "pattern": "^\\d{6}$", "type": "string" },
+          "totpChallengeToken": { "type": "string" }
+        },
+        "required": ["code", "totpChallengeToken"],
+        "type": "object"
+      },
+      "TotpEnrollResponse": {
+        "properties": {
+          "qrUri": { "type": "string" },
+          "secret": { "type": "string" }
+        },
+        "required": ["qrUri", "secret"],
+        "type": "object"
+      },
+      "TotpVerifyRequest": {
+        "properties": {
+          "code": { "pattern": "^\\d{6}$", "type": "string" }
+        },
+        "required": ["code"],
+        "type": "object"
+      },
+      "UpdateProfileRequest": {
+        "properties": {
+          "firstName": { "maxLength": 100, "minLength": 1, "type": "string" },
+          "lastName": { "maxLength": 100, "minLength": 1, "type": "string" }
+        },
+        "required": ["firstName", "lastName"],
+        "type": "object"
+      },
+      "UpdateRoleRequest": {
+        "properties": {
+          "role": { "type": "string" }
+        },
+        "required": ["role"],
+        "type": "object"
+      },
+      "UpdateServicePermissionsRequest": {
+        "properties": {
+          "services": {
+            "items": {
+              "enum": [
+                "ADGUARD",
+                "AGENTS",
+                "BAZARR",
+                "DASHBOARD",
+                "GRAFANA",
+                "IMMICH",
+                "JELLYFIN",
+                "JELLYSEERR",
+                "KNOWLEDGE_API",
+                "MAIL",
+                "N8N",
+                "PROWLARR",
+                "QBITTORRENT",
+                "RABBITMQ",
+                "RADARR",
+                "SONARR",
+                "STATUS",
+                "TRAEFIK",
+                "VAULT",
+                "WOLF"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": ["services"],
+        "type": "object"
+      },
+      "UserResponse": {
+        "properties": {
+          "createdAt": { "format": "date-time", "type": "string" },
+          "email": { "format": "email", "type": "string" },
+          "firstName": { "type": "string" },
+          "id": { "format": "uuid", "type": "string" },
+          "lastName": { "type": "string" },
+          "role": { "type": "string" },
+          "totpEnabled": { "type": "boolean" },
+          "username": { "type": "string" }
+        },
+        "required": [
+          "createdAt",
+          "email",
+          "firstName",
+          "id",
+          "lastName",
+          "role",
+          "totpEnabled",
+          "username"
+        ],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "bearerFormat": "JWT",
+        "scheme": "bearer",
+        "type": "http"
+      },
+      "oauth2": {
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://auth.jorisjonkers.dev/api/oauth2/authorize",
+            "refreshUrl": "https://auth.jorisjonkers.dev/api/oauth2/token",
+            "tokenUrl": "https://auth.jorisjonkers.dev/api/oauth2/token"
+          }
+        },
+        "type": "oauth2"
+      }
+    }
+  },
+  "info": {
+    "description": "Authentication and authorization service for jorisjonkers.dev",
+    "title": "Auth API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/admin/users": {
+      "get": {
+        "operationId": "listAdminUsers",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": { "$ref": "#/components/schemas/AdminUserResponse" },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Users returned"
+          }
+        },
+        "tags": ["Admin"]
+      }
+    },
+    "/api/v1/admin/users/{id}": {
+      "delete": {
+        "operationId": "deleteAdminUser",
+        "parameters": [{ "$ref": "#/components/parameters/UserIdPath" }],
+        "responses": {
+          "204": { "description": "User deleted" }
+        },
+        "tags": ["Admin"]
+      },
+      "get": {
+        "operationId": "getAdminUser",
+        "parameters": [{ "$ref": "#/components/parameters/UserIdPath" }],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AdminUserResponse" }
+              }
+            },
+            "description": "User returned"
+          }
+        },
+        "tags": ["Admin"]
+      }
+    },
+    "/api/v1/admin/users/{id}/role": {
+      "patch": {
+        "operationId": "updateAdminUserRole",
+        "parameters": [{ "$ref": "#/components/parameters/UserIdPath" }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateRoleRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AdminUserResponse" }
+              }
+            },
+            "description": "Role updated"
+          }
+        },
+        "tags": ["Admin"]
+      }
+    },
+    "/api/v1/admin/users/{id}/services": {
+      "put": {
+        "operationId": "updateAdminUserServicePermissions",
+        "parameters": [{ "$ref": "#/components/parameters/UserIdPath" }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateServicePermissionsRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AdminUserResponse" }
+              }
+            },
+            "description": "Permissions updated"
+          }
+        },
+        "tags": ["Admin"]
+      }
+    },
+    "/api/v1/auth/change-password": {
+      "post": {
+        "operationId": "changePassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ChangePasswordRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": { "description": "Password changed" }
+        },
+        "tags": ["Password"]
+      }
+    },
+    "/api/v1/auth/confirm-email": {
+      "get": {
+        "operationId": "confirmEmail",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "token",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MessageResponse" }
+              }
+            },
+            "description": "Email confirmed"
+          }
+        },
+        "security": [],
+        "tags": ["Email"]
+      }
+    },
+    "/api/v1/auth/forgot-password": {
+      "post": {
+        "operationId": "forgotPassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ForgotPasswordRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MessageResponse" }
+              }
+            },
+            "description": "Password reset requested"
+          }
+        },
+        "security": [],
+        "tags": ["Password"]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LoginResponse" }
+              }
+            },
+            "description": "Login response returned"
+          }
+        },
+        "security": [],
+        "tags": ["Authentication"]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "get": {
+        "operationId": "logoutRedirect",
+        "responses": {
+          "302": { "description": "Session cleared and redirected" }
+        },
+        "tags": ["Authentication"]
+      },
+      "post": {
+        "operationId": "logout",
+        "responses": {
+          "204": { "description": "Session cleared" }
+        },
+        "tags": ["Authentication"]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "operationId": "getCurrentSessionUser",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SessionUserResponse" }
+              }
+            },
+            "description": "Current session user returned"
+          }
+        },
+        "tags": ["Authentication"]
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "operationId": "refreshToken",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RefreshRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TokenResponse" }
+              }
+            },
+            "description": "Token refreshed"
+          }
+        },
+        "security": [],
+        "tags": ["Authentication"]
+      }
+    },
+    "/api/v1/auth/resend-confirmation": {
+      "post": {
+        "operationId": "resendConfirmation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ResendConfirmationRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MessageResponse" }
+              }
+            },
+            "description": "Confirmation email requested"
+          }
+        },
+        "security": [],
+        "tags": ["Email"]
+      }
+    },
+    "/api/v1/auth/reset-password": {
+      "post": {
+        "operationId": "resetPassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ResetPasswordRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MessageResponse" }
+              }
+            },
+            "description": "Password reset"
+          }
+        },
+        "security": [],
+        "tags": ["Password"]
+      }
+    },
+    "/api/v1/auth/session-login": {
+      "post": {
+        "operationId": "sessionLogin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SessionLoginRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SessionLoginResponse" }
+              }
+            },
+            "description": "Session login response returned"
+          }
+        },
+        "security": [],
+        "tags": ["Authentication"]
+      }
+    },
+    "/api/v1/auth/totp-challenge": {
+      "post": {
+        "operationId": "completeTotpChallenge",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TotpChallengeRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LoginResponse" }
+              }
+            },
+            "description": "Login response returned"
+          }
+        },
+        "security": [],
+        "tags": ["Authentication"]
+      }
+    },
+    "/api/v1/auth/verify": {
+      "get": {
+        "operationId": "verifyForwardAuth",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Forwarded-Host",
+            "required": false,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session verified",
+            "headers": {
+              "X-Agents-Verified-Jwt": {
+                "schema": { "type": "string" }
+              },
+              "X-User-Id": {
+                "schema": { "type": "string" }
+              },
+              "X-User-Roles": {
+                "schema": { "type": "string" }
+              }
+            }
+          },
+          "403": {
+            "description": "Not authorized for forwarded host"
+          }
+        },
+        "tags": ["Authentication"]
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HealthResponse" }
+              }
+            },
+            "description": "Health returned"
+          }
+        },
+        "security": [],
+        "tags": ["Health"]
+      }
+    },
+    "/api/v1/totp/enroll": {
+      "post": {
+        "operationId": "enrollTotp",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TotpEnrollResponse" }
+              }
+            },
+            "description": "TOTP enrollment returned"
+          }
+        },
+        "tags": ["TOTP"]
+      }
+    },
+    "/api/v1/totp/verify": {
+      "post": {
+        "operationId": "verifyTotp",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TotpVerifyRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": { "description": "TOTP verified" }
+        },
+        "tags": ["TOTP"]
+      }
+    },
+    "/api/v1/users/me": {
+      "get": {
+        "operationId": "getProfile",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProfileResponse" }
+              }
+            },
+            "description": "Profile returned"
+          }
+        },
+        "tags": ["Profile"]
+      },
+      "patch": {
+        "operationId": "updateProfile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateProfileRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ProfileResponse" }
+              }
+            },
+            "description": "Profile updated"
+          }
+        },
+        "tags": ["Profile"]
+      }
+    },
+    "/api/v1/users/register": {
+      "post": {
+        "operationId": "registerUser",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterUserRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UserResponse" }
+              }
+            },
+            "description": "User registered"
+          }
+        },
+        "security": [],
+        "tags": ["Users"]
+      }
+    }
+  },
+  "security": [{ "bearerAuth": [] }],
+  "servers": [
+    {
+      "description": "Production",
+      "url": "https://auth.jorisjonkers.dev"
+    },
+    {
+      "description": "Local development",
+      "url": "http://localhost:8081"
+    }
+  ],
+  "tags": [
+    { "name": "Admin" },
+    { "name": "Authentication" },
+    { "name": "Email" },
+    { "name": "Health" },
+    { "name": "Password" },
+    { "name": "Profile" },
+    { "name": "TOTP" },
+    { "name": "Users" }
+  ]
+}

@@ -1,0 +1,28 @@
+name: CRaC Train
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  train:
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/crac-train.yml@v0.6.1
+    with:
+      service-matrix: >-
+        [
+          {
+            "service": "auth-api",
+            "context": ".",
+            "dockerfile": "Dockerfile",
+            "port": 8081,
+            "db_name": "auth_db",
+            "db_user": "auth_user",
+            "db_password": "auth_password",
+            "sidecars": ["postgres", "valkey", "rabbitmq"]
+          }
+        ]
+    secrets:
+      packages-token: ${{ secrets.GITHUB_TOKEN }}
