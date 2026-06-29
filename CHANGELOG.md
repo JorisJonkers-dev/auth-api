@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.2.0...v0.2.1) (2026-06-29)
+
+
+### Bug Fixes
+
+* add .dockerignore to exclude build artifacts from image context ([#3](https://github.com/JorisJonkers-dev/auth-api/issues/3)) ([94244a4](https://github.com/JorisJonkers-dev/auth-api/commit/94244a4d59a9a2153e85dd637374aaa9782ac8cf))
+
 ## [0.2.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.1.0...v0.2.0) (2026-06-28)
 
 
