@@ -9,4 +9,21 @@ clients/typescript/src/generated/
 *.iml
 .idea/
 
+# Local planning and agent scratch artifacts
+.specify/
+specs/[0-9][0-9][0-9]-*/
+plans/
+planning/
+scratchpad/
+scratchpads/
+.agent-council/
+**/*scratchpad*.md
+**/*.scratch.md
+**/*agent-council*.md
+.claude/commands/speckit*.md
+.claude/skills/speckit*/
+.agents/skills/speckit*/
+templates/**/.specify/
+templates/**/.claude/commands/speckit*.md
+
 !gradle/wrapper/gradle-wrapper.jar

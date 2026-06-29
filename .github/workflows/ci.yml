@@ -1,103 +1,141 @@
-name: CI
+name: 'CI'
 
-on:
+'on':
   pull_request:
   push:
-    branches: [main]
+    branches:
+      - 'main'
+  workflow_dispatch:
 
 permissions:
-  contents: read
-  packages: read
-  pull-requests: read
+  contents: 'read'
+  packages: 'read'
+  pull-requests: 'read'
 
 jobs:
+  workflow-lint:
+    name: 'Workflow Lint'
+    runs-on: 'ubuntu-latest'
+    steps:
+      - uses: 'actions/checkout@v6'
+
+      - name: 'Download actionlint'
+        id: 'actionlint'
+        shell: 'bash'
+        run: 'bash <(curl --fail --silent --show-error --location https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)'
+
+      - name: 'Lint GitHub Actions workflows'
+        shell: 'bash'
+        run: '${{ steps.actionlint.outputs.executable }} -color .github/workflows/*.yml'
+
   jvm:
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@v0.6.1
+    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@v0.8.0'
     with:
-      lint-gradle-args: :api:detekt :api:ktlintCheck
+      lint-gradle-args: ':api:detekt :api:ktlintCheck'
       test-gradle-args: >-
         :api:test
         :api:integrationTest
         :api:jacocoTestCoverageVerification
         :api:exportOpenApiSpec
     secrets:
-      packages-token: ${{ secrets.GITHUB_TOKEN }}
+      packages-token: '${{ secrets.GITHUB_TOKEN }}'
 
   client-dry-run:
-    name: Client Dry Run
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/publish-api-clients.yml@v0.7.2
+    name: 'Client Dry Run'
+    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/publish-api-clients.yml@v0.8.0'
     permissions:
-      contents: read
-      packages: write
-      id-token: write
+      contents: 'read'
+      packages: 'write'
+      id-token: 'write'
     with:
-      spec-path: client-spec/openapi/auth-api.json
-      api-name: auth-api
-      version: 0.0.0-ci.${{ github.run_number }}.${{ github.run_attempt }}
-      ts-package: "@jorisjonkers-dev/auth-api-client"
-      maven-group: dev.jorisjonkers
-      java-artifact: auth-api-client-java
-      kotlin-artifact: auth-api-client-kotlin
+      spec-path: 'client-spec/openapi/auth-api.json'
+      api-name: 'auth-api'
+      version: '0.0.0-ci.${{ github.run_number }}.${{ github.run_attempt }}'
+      ts-package: '@jorisjonkers-dev/auth-api-client'
+      maven-group: 'dev.jorisjonkers'
+      java-artifact: 'auth-api-client-java'
+      kotlin-artifact: 'auth-api-client-kotlin'
+      openapi-client-gradle-version: '0.3.1'
       dry-run: true
     secrets:
-      packages-token: ${{ secrets.GITHUB_TOKEN }}
-      node-auth-token: ${{ secrets.GITHUB_TOKEN }}
+      packages-token: '${{ secrets.GITHUB_TOKEN }}'
+      node-auth-token: '${{ secrets.GITHUB_TOKEN }}'
 
   contract-drift:
-    runs-on: ubuntu-latest
+    name: 'Contract Drift'
+    runs-on: 'ubuntu-latest'
     permissions:
-      contents: read
-      packages: write
-      id-token: write
+      contents: 'read'
+      packages: 'write'
+      id-token: 'write'
     steps:
-      - uses: actions/checkout@v6
+      - uses: 'actions/checkout@v6'
 
-      - uses: actions/setup-java@v5
+      - uses: 'actions/setup-java@v5'
         with:
-          distribution: temurin
-          java-version: "21"
+          distribution: 'temurin'
+          java-version: '21'
 
-      - uses: gradle/actions/setup-gradle@v5
+      - uses: 'gradle/actions/setup-gradle@v6'
 
-      - name: Export OpenAPI spec
+      - name: 'Export OpenAPI spec'
         env:
-          GITHUB_ACTOR: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ github.token }}
-        run: ./gradlew :api:exportOpenApiSpec --no-daemon
+          GITHUB_ACTOR: '${{ github.actor }}'
+          GITHUB_TOKEN: '${{ github.token }}'
+        run: './gradlew :api:exportOpenApiSpec --no-daemon'
 
-      - name: Check OpenAPI spec drift
-        run: git diff --exit-code -- client-spec/openapi/auth-api.json
+      - name: 'Check OpenAPI spec drift'
+        run: 'git diff --exit-code -- client-spec/openapi/auth-api.json'
 
   docker:
-    needs: [jvm]
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/docker-image-ci.yml@v0.6.1
+    needs:
+      - 'jvm'
+    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/docker-image-ci.yml@v0.8.0'
     with:
-      image-name: auth-api/auth-api
-      context: .
-      dockerfile: Dockerfile
+      image-name: 'auth-api/auth-api'
+      context: '.'
+      dockerfile: 'Dockerfile'
       build-args: |
         GIT_SHA=${{ github.sha }}
     secrets:
-      packages-token: ${{ secrets.GITHUB_TOKEN }}
+      packages-token: '${{ secrets.GITHUB_TOKEN }}'
+
+  deploy-bundle:
+    name: 'Deploy Bundle'
+    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/deploy-bundle.yml@v0.8.0'
+    permissions:
+      contents: 'read'
+      packages: 'write'
+    with:
+      deploy-dir: 'deploy'
+      images: 'deploy/images.lock.json'
+      package-version: '0.9.0'
+      version: '0.0.0-ci.${{ github.run_number }}.${{ github.run_attempt }}'
+      bundle-name: 'auth-api'
+      publish: false
+    secrets:
+      packages-token: '${{ secrets.GITHUB_TOKEN }}'
 
   migration-guard:
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/migration-guard.yml@v0.6.1
+    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/migration-guard.yml@v0.8.0'
     with:
-      base-ref: ${{ github.head_ref == 'feat/migrate-jorisjonkers' && github.event.pull_request.head.sha || '' }}
+      base-ref: '${{ github.head_ref == ''feat/migrate-jorisjonkers'' && github.event.pull_request.head.sha || '''' }}'
       migration-regex: '^api/src/main/resources/db/migration/V[0-9]+(?:_[0-9]+)*__[^/]+\.sql$'
       scope-regex: '^(api)/src/main/resources/db/migration/.*'
 
   pipeline-complete:
-    name: Pipeline Complete
-    runs-on: ubuntu-latest
+    name: 'Pipeline Complete'
+    runs-on: 'ubuntu-latest'
     needs:
-      - jvm
-      - client-dry-run
-      - contract-drift
-      - docker
-      - migration-guard
-    if: ${{ always() }}
+      - 'workflow-lint'
+      - 'jvm'
+      - 'client-dry-run'
+      - 'contract-drift'
+      - 'docker'
+      - 'deploy-bundle'
+      - 'migration-guard'
+    if: '${{ always() }}'
     steps:
-      - uses: re-actors/alls-green@release/v1
+      - uses: 're-actors/alls-green@release/v1'
         with:
-          jobs: ${{ toJSON(needs) }}
+          jobs: '${{ toJSON(needs) }}'

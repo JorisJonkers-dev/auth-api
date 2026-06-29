@@ -1,65 +1,157 @@
-name: Release
+name: 'Release'
 
-on:
+'on':
   push:
-    branches: [main]
+    branches:
+      - 'main'
 
 permissions:
-  contents: write
-  pull-requests: write
-  packages: write
+  contents: 'write'
+  pull-requests: 'write'
+  packages: 'write'
 
 jobs:
   release-please:
-    runs-on: ubuntu-latest
+    name: 'Release Please'
+    runs-on: 'ubuntu-latest'
     outputs:
-      release_created: ${{ steps.rp.outputs.release_created }}
-      tag_name: ${{ steps.rp.outputs.tag_name }}
+      release_created: '${{ steps.rp.outputs.release_created }}'
+      tag_name: '${{ steps.rp.outputs.tag_name }}'
     steps:
-      - uses: actions/create-github-app-token@v2
-        id: app-token
+      - uses: 'actions/create-github-app-token@v3'
+        id: 'app-token'
         continue-on-error: true
         with:
-          app-id: ${{ secrets.RELEASE_APP_ID }}
-          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          app-id: '${{ secrets.RELEASE_APP_ID }}'
+          private-key: '${{ secrets.RELEASE_APP_PRIVATE_KEY }}'
 
-      - uses: googleapis/release-please-action@v4
-        id: rp
+      - uses: 'googleapis/release-please-action@v5'
+        id: 'rp'
         with:
-          token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
+          token: '${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}'
+          config-file: 'release-please-config.json'
+          manifest-file: '.release-please-manifest.json'
 
   publish-image:
-    needs: [release-please]
-    if: ${{ needs.release-please.outputs.release_created == 'true' }}
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/container-publish.yml@v0.6.1
+    needs:
+      - 'release-please'
+    if: '${{ needs.release-please.outputs.release_created == ''true'' }}'
+    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/container-publish.yml@v0.8.0'
     with:
-      image-name: auth-api/auth-api
-      version: ${{ needs.release-please.outputs.tag_name }}
-      context: .
-      dockerfile: Dockerfile
+      image-name: 'auth-api/auth-api'
+      version: '${{ needs.release-please.outputs.tag_name }}'
+      context: '.'
+      dockerfile: 'Dockerfile'
     secrets:
-      packages-token: ${{ secrets.GITHUB_TOKEN }}
+      packages-token: '${{ secrets.GITHUB_TOKEN }}'
 
   publish-api-clients:
-    name: Publish API Clients
-    needs: [release-please]
-    if: ${{ needs.release-please.outputs.release_created == 'true' }}
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/publish-api-clients.yml@v0.7.2
+    name: 'Publish API Clients'
+    needs:
+      - 'release-please'
+    if: '${{ needs.release-please.outputs.release_created == ''true'' }}'
+    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/publish-api-clients.yml@v0.8.0'
     permissions:
-      contents: read
-      packages: write
-      id-token: write
+      contents: 'read'
+      packages: 'write'
+      id-token: 'write'
     with:
-      spec-path: client-spec/openapi/auth-api.json
-      api-name: auth-api
-      version: ${{ needs.release-please.outputs.tag_name }}
-      ts-package: "@jorisjonkers-dev/auth-api-client"
-      maven-group: dev.jorisjonkers
-      java-artifact: auth-api-client-java
-      kotlin-artifact: auth-api-client-kotlin
+      spec-path: 'client-spec/openapi/auth-api.json'
+      api-name: 'auth-api'
+      version: '${{ needs.release-please.outputs.tag_name }}'
+      ts-package: '@jorisjonkers-dev/auth-api-client'
+      maven-group: 'dev.jorisjonkers'
+      java-artifact: 'auth-api-client-java'
+      kotlin-artifact: 'auth-api-client-kotlin'
+      openapi-client-gradle-version: '0.3.1'
       dry-run: false
     secrets:
-      packages-token: ${{ secrets.GITHUB_TOKEN }}
-      node-auth-token: ${{ secrets.GITHUB_TOKEN }}
+      packages-token: '${{ secrets.GITHUB_TOKEN }}'
+      node-auth-token: '${{ secrets.GITHUB_TOKEN }}'
+
+  publish-deploy-bundle:
+    name: 'Publish Deploy Bundle'
+    needs:
+      - 'release-please'
+      - 'publish-image'
+    if: '${{ needs.release-please.outputs.release_created == ''true'' }}'
+    runs-on: 'ubuntu-latest'
+    permissions:
+      contents: 'read'
+      packages: 'write'
+    steps:
+      - uses: 'actions/checkout@v6'
+
+      - uses: 'actions/checkout@v6'
+        with:
+          repository: 'JorisJonkers-dev/github-workflows'
+          ref: 'v0.8.0'
+          path: '.github-workflows'
+          persist-credentials: false
+
+      - uses: 'docker/setup-buildx-action@v4'
+
+      - uses: 'docker/login-action@v4'
+        with:
+          registry: 'ghcr.io'
+          username: '${{ github.actor }}'
+          password: '${{ secrets.GITHUB_TOKEN }}'
+
+      - name: 'Resolve released image digest'
+        id: 'image'
+        env:
+          IMAGE_NAME: 'auth-api/auth-api'
+          VERSION: '${{ needs.release-please.outputs.tag_name }}'
+          GITHUB_REPOSITORY_OWNER: '${{ github.repository_owner }}'
+        run: |
+          set -euo pipefail
+
+          owner="$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')"
+          image_ref="ghcr.io/${owner}/${IMAGE_NAME}:${VERSION}"
+          digest="$(docker buildx imagetools inspect "$image_ref" --format '{{json .Manifest.Digest}}' | jq -r .)"
+          if [ -z "$digest" ] || [ "$digest" = 'null' ]; then
+            echo "::error::Unable to resolve digest for $image_ref"
+            exit 1
+          fi
+          printf 'image=%s@%s\n' "$image_ref" "$digest" >> "$GITHUB_OUTPUT"
+
+      - name: 'Write release image lock'
+        env:
+          IMAGE_REF: '${{ steps.image.outputs.image }}'
+        run: |
+          set -euo pipefail
+
+          jq -n --arg image "$IMAGE_REF" '[$image]' > "$RUNNER_TEMP/images.lock.json"
+
+      - name: 'Pack deploy bundle'
+        id: 'bundle'
+        uses: './.github-workflows/actions/deploy-bundle'
+        with:
+          deploy-dir: 'deploy'
+          images: '${{ runner.temp }}/images.lock.json'
+          package-version: '0.9.0'
+          version: '${{ needs.release-please.outputs.tag_name }}'
+          bundle-name: 'auth-api'
+          node-auth-token: '${{ secrets.GITHUB_TOKEN }}'
+
+      - uses: 'oras-project/setup-oras@v2'
+
+      - name: 'Log in to GHCR'
+        env:
+          GHCR_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+        run: |
+          set -euo pipefail
+
+          oras login ghcr.io --username "$GITHUB_ACTOR" --password-stdin <<< "$GHCR_TOKEN"
+
+      - name: 'Publish deploy bundle'
+        env:
+          BUNDLE_PATH: '${{ steps.bundle.outputs.bundle-path }}'
+          BUNDLE_VERSION: '${{ steps.bundle.outputs.bundle-version }}'
+          GITHUB_REPOSITORY_OWNER: '${{ github.repository_owner }}'
+        run: |
+          set -euo pipefail
+
+          owner="$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')"
+          bundle_ref="ghcr.io/${owner}/auth-api-deploy-bundle:${BUNDLE_VERSION}"
+          oras push "$bundle_ref" "$BUNDLE_PATH:application/vnd.jorisjonkers.deployment.bundle.v1+tar"
