@@ -1,0 +1,78 @@
+apiVersion: deployment.jorisjonkers.dev/v2
+kind: Deployment
+metadata:
+  name: auth-api
+  labels:
+    app.kubernetes.io/part-of: auth
+spec:
+  services:
+    auth-api:
+      image: ghcr.io/jorisjonkers-dev/auth-api/auth-api:${BUNDLE_VERSION}
+      namespace: auth-system
+      account: auth-api
+      ports:
+        - name: http
+          containerPort: 8081
+      data:
+        postgres:
+          claim: data.platform-postgres.auth-api
+          database: auth_db
+          staticCredentialSecret: secret/data/platform/postgres
+          dynamicRole: database/roles/auth-api
+        valkey:
+          service: valkey.data-system.svc.cluster.local
+      messaging:
+        rabbitmq:
+          claim: data.platform-rabbitmq.app-consumer
+          credentialPath: rabbitmq/creds/app-consumer
+      placement:
+        site: frankfurt
+        nodeSelector:
+          platform.jorisjonkers.dev/site: frankfurt
+        requiredCapabilities:
+          - platform
+      autoscaling:
+        minReplicas: 1
+        maxReplicas: 1
+      credentials:
+        - name: app-secrets
+          claim: secret/data/auth-api
+        - name: mail-account
+          claim: secret/data/platform/mail
+        - name: postgres-static
+          claim: secret/data/platform/postgres
+        - name: postgres-dynamic
+          claim: database/creds/auth-api
+        - name: rabbitmq-consumer
+          claim: rabbitmq/creds/app-consumer
+        - name: jwt-transit-sign
+          claim: transit/sign/auth-api-jwt
+        - name: jwt-transit-key
+          claim: transit/keys/auth-api-jwt
+      observability:
+        metrics:
+          - port: http
+            path: /api/actuator/prometheus
+        gatus:
+          - name: readiness
+            url: https://auth.jorisjonkers.dev/api/actuator/health/readiness
+      routes:
+        - host: auth.jorisjonkers.dev
+          expose:
+            tier: public-frankfurt
+          rules:
+            - path: /api/
+              port: http
+              operation: prefix
+              auth:
+                scope: anonymous
+            - path: /.well-known/
+              port: http
+              operation: prefix
+              auth:
+                scope: anonymous
+      safety:
+        gateOn:
+          - parity
+          - routeOrAuthChange
+          - dynamicCredentialRoleChange

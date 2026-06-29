@@ -62,6 +62,7 @@ import java.nio.file.Paths
         UserRegistrationController::class,
     ],
     properties = [
+        "springdoc.api-docs.enabled=true",
         "springdoc.api-docs.path=/api/v1/api-docs",
         "springdoc.writer-with-default-pretty-printer=true",
         "springdoc.writer-with-order-by-keys=true",

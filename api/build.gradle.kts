@@ -88,5 +88,6 @@ tasks.register<Test>("exportOpenApiSpec") {
             .file("client-spec/openapi/auth-api.json")
             .asFile.absolutePath,
     )
+    systemProperty("springdoc.api-docs.enabled", "true")
     outputs.upToDateWhen { false }
 }
