@@ -6,6 +6,7 @@ import com.jorisjonkers.personalstack.common.command.CommandHandler
 import org.springframework.aop.support.AopUtils
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import java.lang.reflect.InvocationTargetException
 import kotlin.reflect.KClass
 import kotlin.reflect.full.allSupertypes
 
@@ -62,8 +63,15 @@ class SpringCommandBus(
         private val handleMethod =
             CommandHandler::class.java.getMethod("handle", Command::class.java)
 
-        private fun erased(handler: CommandHandler<*>): (Command) -> Unit {
-            return { command -> handleMethod.invoke(handler, command) }
-        }
+        private fun erased(handler: CommandHandler<*>): (Command) -> Unit =
+            { command ->
+                try {
+                    handleMethod.invoke(handler, command)
+                } catch (ex: InvocationTargetException) {
+                    // Reflective invoke wraps handler exceptions; rethrow the real cause so
+                    // domain exceptions (e.g. DuplicateUsername) reach the exception handler.
+                    throw ex.cause ?: ex
+                }
+            }
     }
 }
