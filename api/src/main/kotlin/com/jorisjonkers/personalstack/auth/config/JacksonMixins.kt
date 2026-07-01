@@ -20,10 +20,10 @@ import java.util.UUID
 class AuthenticatedUserMixin
     @JsonCreator
     constructor(
-        @JsonProperty("userId") val userId: UserId,
-        @JsonProperty("username") val username: String,
-        @JsonProperty("roles") val roles: List<String>,
-        @JsonProperty("passwordHash") val passwordHash: String,
+        @param:JsonProperty("userId") val userId: UserId,
+        @param:JsonProperty("username") val username: String,
+        @param:JsonProperty("roles") val roles: List<String>,
+        @param:JsonProperty("passwordHash") val passwordHash: String,
     )
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
@@ -31,5 +31,5 @@ class AuthenticatedUserMixin
 class UserIdMixin
     @JsonCreator
     constructor(
-        @JsonProperty("value") val value: UUID,
+        @param:JsonProperty("value") val value: UUID,
     )
