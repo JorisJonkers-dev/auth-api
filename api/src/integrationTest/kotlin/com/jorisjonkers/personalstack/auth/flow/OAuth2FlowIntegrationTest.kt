@@ -1018,7 +1018,6 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
         }
     }
 
-    @Suppress("DEPRECATION")
     @Test
     fun `authorization consent is not required for configured clients`() {
         val username = uniqueUsername()

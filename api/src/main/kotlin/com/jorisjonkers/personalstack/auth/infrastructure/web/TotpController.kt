@@ -36,7 +36,7 @@ class TotpController(
     fun verify(
         @AuthenticationPrincipal user: AuthenticatedUser,
         @Valid @RequestBody request: TotpVerifyRequest,
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         validateRequestBody(request)
         commandBus.dispatch(VerifyTotpCommand(userId = user.userIdValue(), code = request.code))
         return ResponseEntity.noContent().build()

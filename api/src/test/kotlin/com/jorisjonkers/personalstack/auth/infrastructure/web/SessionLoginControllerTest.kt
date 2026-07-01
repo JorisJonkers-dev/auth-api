@@ -221,7 +221,6 @@ class SessionLoginControllerTest {
             }
     }
 
-    @Suppress("DEPRECATION")
     @Test
     fun `session login with blank username returns 422`() {
         val request = SessionLoginRequest(username = "", password = "securepass123")
@@ -235,7 +234,6 @@ class SessionLoginControllerTest {
             }
     }
 
-    @Suppress("DEPRECATION")
     @Test
     fun `session login with blank password returns 422`() {
         val request = SessionLoginRequest(username = "alice", password = "")

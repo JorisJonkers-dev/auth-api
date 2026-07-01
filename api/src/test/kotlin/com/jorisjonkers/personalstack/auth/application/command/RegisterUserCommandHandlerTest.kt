@@ -4,7 +4,6 @@ import com.jorisjonkers.personalstack.auth.domain.exception.DuplicateEmailExcept
 import com.jorisjonkers.personalstack.auth.domain.exception.DuplicateUsernameException
 import com.jorisjonkers.personalstack.auth.domain.model.Role
 import com.jorisjonkers.personalstack.auth.domain.model.User
-import com.jorisjonkers.personalstack.auth.domain.model.UserId
 import com.jorisjonkers.personalstack.auth.domain.port.EmailConfirmationTokenRepository
 import com.jorisjonkers.personalstack.auth.domain.port.PasswordEncoder
 import com.jorisjonkers.personalstack.auth.domain.port.UserRepository
@@ -18,8 +17,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.springframework.context.ApplicationEventPublisher
-import java.time.Instant
-import java.util.UUID
 
 class RegisterUserCommandHandlerTest {
     private val userRepository = mockk<UserRepository>()
@@ -92,25 +89,6 @@ class RegisterUserCommandHandlerTest {
         assertThatThrownBy {
             handler.handle(RegisterUserCommand("alice", "alice@example.com", "Alice", "Smith", "pass"))
         }.isInstanceOf(DuplicateEmailException::class.java)
-    }
-
-    private fun buildUser(
-        username: String,
-        email: String,
-    ): User {
-        val now = Instant.now()
-        return User(
-            id = UserId(UUID.randomUUID()),
-            username = username,
-            email = email,
-            firstName = "",
-            lastName = "",
-            role = Role.USER,
-            emailConfirmed = false,
-            totpEnabled = false,
-            createdAt = now,
-            updatedAt = now,
-        )
     }
 
     private companion object {

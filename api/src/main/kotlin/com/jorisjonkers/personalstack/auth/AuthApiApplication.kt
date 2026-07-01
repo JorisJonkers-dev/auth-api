@@ -1,7 +1,7 @@
 package com.jorisjonkers.personalstack.auth
 
+import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.runApplication
 import org.springframework.scheduling.annotation.EnableAsync
 
 @EnableAsync
@@ -9,5 +9,5 @@ import org.springframework.scheduling.annotation.EnableAsync
 class AuthApiApplication
 
 fun main(args: Array<String>) {
-    runApplication<AuthApiApplication>(*args)
+    SpringApplication.run(arrayOf(AuthApiApplication::class.java), args)
 }

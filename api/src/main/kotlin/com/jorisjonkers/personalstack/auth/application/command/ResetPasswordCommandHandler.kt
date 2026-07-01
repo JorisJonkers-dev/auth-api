@@ -1,6 +1,7 @@
 package com.jorisjonkers.personalstack.auth.application.command
 
 import com.jorisjonkers.personalstack.auth.domain.exception.InvalidResetTokenException
+import com.jorisjonkers.personalstack.auth.domain.model.PasswordResetToken
 import com.jorisjonkers.personalstack.auth.domain.port.PasswordEncoder
 import com.jorisjonkers.personalstack.auth.domain.port.PasswordResetTokenRepository
 import com.jorisjonkers.personalstack.auth.domain.port.UserRepository
@@ -14,22 +15,18 @@ class ResetPasswordCommandHandler(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
 ) : CommandHandler<ResetPasswordCommand> {
-    @Suppress("ThrowsCount")
     override fun handle(command: ResetPasswordCommand) {
-        val token =
-            passwordResetTokenRepository.findByToken(command.token)
-                ?: throw InvalidResetTokenException("Password reset token not found")
-
-        if (token.isUsed()) {
-            throw InvalidResetTokenException("Password reset token has already been used")
-        }
-        if (token.isExpired()) {
-            throw InvalidResetTokenException("Password reset token has expired")
-        }
-
-        val newHash = passwordEncoder.encode(command.newPassword)
-        userRepository.updatePassword(token.userId, newHash)
-
+        val token = resolveValidToken(command.token)
+        userRepository.updatePassword(token.userId, passwordEncoder.encode(command.newPassword))
         passwordResetTokenRepository.save(token.copy(usedAt = Instant.now()))
+    }
+
+    private fun resolveValidToken(rawToken: String): PasswordResetToken {
+        val token =
+            passwordResetTokenRepository.findByToken(rawToken)
+                ?: throw InvalidResetTokenException("Password reset token not found")
+        if (token.isUsed()) throw InvalidResetTokenException("Password reset token has already been used")
+        if (token.isExpired()) throw InvalidResetTokenException("Password reset token has expired")
+        return token
     }
 }

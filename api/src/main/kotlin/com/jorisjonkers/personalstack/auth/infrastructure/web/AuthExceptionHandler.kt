@@ -39,9 +39,7 @@ class AuthExceptionHandler {
     ): ResponseEntity<ProblemDetail> = sharedHandler.handleConstraintViolation(ex, request)
 
     @ExceptionHandler(AccessDeniedException::class)
-    fun handleAccessDenied(
-        @Suppress("UNUSED_PARAMETER") ex: AccessDeniedException,
-    ): ResponseEntity<ProblemDetail> {
+    fun handleAccessDenied(): ResponseEntity<ProblemDetail> {
         val body =
             ProblemDetail(
                 type = URI.create("https://jorisjonkers.dev/errors/forbidden"),

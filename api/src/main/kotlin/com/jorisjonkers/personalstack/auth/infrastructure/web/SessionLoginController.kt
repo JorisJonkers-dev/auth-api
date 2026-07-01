@@ -60,7 +60,6 @@ class SessionLoginController(
         )
     }
 
-    @Suppress("ThrowsCount")
     private fun authenticate(
         username: String,
         password: String,
@@ -68,11 +67,16 @@ class SessionLoginController(
         val credentials =
             userRepository.findCredentialsByUsername(username)
                 ?: throw InvalidCredentialsException()
-        if (!passwordEncoder.matches(password, credentials.passwordHash)) {
-            throw InvalidCredentialsException()
-        }
+        verifyPassword(password, credentials.passwordHash)
         if (!credentials.emailConfirmed) throw EmailNotConfirmedException()
         return credentials
+    }
+
+    private fun verifyPassword(
+        rawPassword: String,
+        encodedPassword: String,
+    ) {
+        if (!passwordEncoder.matches(rawPassword, encodedPassword)) throw InvalidCredentialsException()
     }
 
     private fun handleTotp(

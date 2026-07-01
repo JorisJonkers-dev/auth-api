@@ -187,7 +187,6 @@ class AuthorizationServerConfig(
         )
 
     @Bean
-    @Suppress("LongMethod")
     fun jwtTokenCustomizer(userRepository: UserRepository): OAuth2TokenCustomizer<JwtEncodingContext> =
         OAuth2TokenCustomizer { context ->
             val principal = context.getPrincipal<Authentication>()
@@ -196,36 +195,49 @@ class AuthorizationServerConfig(
             val roles = buildRoles(credentials)
 
             when {
-                context.tokenType == OAuth2TokenType.ACCESS_TOKEN -> {
-                    context.claims.claim("roles", roles)
-                    context.claims.claim("username", credentials.username)
-                    context.claims.claim("preferred_username", credentials.username)
-                    context.claims.claim("email", credentials.email)
-                    context.claims.claim("aud", listOf(context.registeredClient.clientId))
-                    context.claims.subject(credentials.userId.value.toString())
-                }
-
-                context.tokenType.value == OidcParameterNames.ID_TOKEN -> {
-                    context.claims.claim("roles", roles)
-                    context.claims.subject(credentials.userId.value.toString())
-
-                    if (OidcScopes.PROFILE in context.authorizedScopes) {
-                        context.claims.claim("preferred_username", credentials.username)
-                        context.claims.claim("name", "${credentials.firstName} ${credentials.lastName}")
-                    }
-
-                    if (OidcScopes.EMAIL in context.authorizedScopes) {
-                        context.claims.claim("email", credentials.email)
-                        context.claims.claim("email_verified", credentials.emailConfirmed)
-                    }
-
-                    val k8sGroups = kubernetesGroups(credentials)
-                    if (k8sGroups.isNotEmpty() && "groups" in context.authorizedScopes) {
-                        context.claims.claim("groups", k8sGroups)
-                    }
-                }
+                context.tokenType == OAuth2TokenType.ACCESS_TOKEN ->
+                    customizeAccessToken(context, credentials, roles)
+                context.tokenType.value == OidcParameterNames.ID_TOKEN ->
+                    customizeIdToken(context, credentials, roles)
             }
         }
+
+    private fun customizeAccessToken(
+        context: JwtEncodingContext,
+        credentials: UserCredentials,
+        roles: List<String>,
+    ) {
+        context.claims.claim("roles", roles)
+        context.claims.claim("username", credentials.username)
+        context.claims.claim("preferred_username", credentials.username)
+        context.claims.claim("email", credentials.email)
+        context.claims.claim("aud", listOf(context.registeredClient.clientId))
+        context.claims.subject(credentials.userId.value.toString())
+    }
+
+    private fun customizeIdToken(
+        context: JwtEncodingContext,
+        credentials: UserCredentials,
+        roles: List<String>,
+    ) {
+        context.claims.claim("roles", roles)
+        context.claims.subject(credentials.userId.value.toString())
+
+        if (OidcScopes.PROFILE in context.authorizedScopes) {
+            context.claims.claim("preferred_username", credentials.username)
+            context.claims.claim("name", "${credentials.firstName} ${credentials.lastName}")
+        }
+
+        if (OidcScopes.EMAIL in context.authorizedScopes) {
+            context.claims.claim("email", credentials.email)
+            context.claims.claim("email_verified", credentials.emailConfirmed)
+        }
+
+        val k8sGroups = kubernetesGroups(credentials)
+        if (k8sGroups.isNotEmpty() && "groups" in context.authorizedScopes) {
+            context.claims.claim("groups", k8sGroups)
+        }
+    }
 
     @Bean
     fun authorizationServerSettings(): AuthorizationServerSettings =

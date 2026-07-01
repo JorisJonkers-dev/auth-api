@@ -15,18 +15,21 @@ import java.util.UUID
     isGetterVisibility = JsonAutoDetect.Visibility.NONE,
 )
 @JsonIgnoreProperties(ignoreUnknown = true)
-abstract class AuthenticatedUserMixin
+// Jackson mixin: constructor parameters are consumed by Jackson via @JsonCreator
+// during deserialization and are intentionally not referenced in the class body.
+class AuthenticatedUserMixin
     @JsonCreator
     constructor(
-        @JsonProperty("userId") userId: UserId,
-        @JsonProperty("username") username: String,
-        @JsonProperty("roles") roles: List<String>,
-        @JsonProperty("passwordHash") passwordHash: String,
+        @JsonProperty("userId") val userId: UserId,
+        @JsonProperty("username") val username: String,
+        @JsonProperty("roles") val roles: List<String>,
+        @JsonProperty("passwordHash") val passwordHash: String,
     )
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
-abstract class UserIdMixin
+// Jackson mixin: constructor parameter consumed by Jackson via @JsonCreator.
+class UserIdMixin
     @JsonCreator
     constructor(
-        @JsonProperty("value") value: UUID,
+        @JsonProperty("value") val value: UUID,
     )

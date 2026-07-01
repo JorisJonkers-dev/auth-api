@@ -104,7 +104,7 @@ class SecurityConfig(
             },
         )
         csrf.csrfTokenRequestHandler(CsrfTokenRequestAttributeHandler())
-        csrf.ignoringRequestMatchers(*(PUBLIC_POST_ENDPOINTS + CSRF_FREE_ENDPOINTS))
+        CSRF_IGNORED_ENDPOINTS.forEach { csrf.ignoringRequestMatchers(it) }
         csrf.ignoringRequestMatchers(bearerTokenRequestMatcher())
     }
 
@@ -113,11 +113,8 @@ class SecurityConfig(
             .AuthorizeHttpRequestsConfigurer<HttpSecurity>
             .AuthorizationManagerRequestMatcherRegistry,
     ) {
-        auth
-            .requestMatchers(*PUBLIC_ENDPOINTS)
-            .permitAll()
-            .anyRequest()
-            .authenticated()
+        PUBLIC_ENDPOINTS.forEach { auth.requestMatchers(it).permitAll() }
+        auth.anyRequest().authenticated()
     }
 
     private fun forwardAuthEntryPoint() =
@@ -172,7 +169,9 @@ class SecurityConfig(
     }
 
     companion object {
-        private val PUBLIC_POST_ENDPOINTS =
+        // Endpoints exempt from CSRF: public POST endpoints plus health/actuator/verify.
+        // Pre-built as a single array to avoid the spread-copy penalty when configuring CSRF.
+        private val CSRF_IGNORED_ENDPOINTS =
             arrayOf(
                 "/api/v1/auth/session-login",
                 "/api/v1/users/register",
@@ -182,10 +181,6 @@ class SecurityConfig(
                 "/api/v1/auth/resend-confirmation",
                 "/api/v1/auth/forgot-password",
                 "/api/v1/auth/reset-password",
-            )
-
-        private val CSRF_FREE_ENDPOINTS =
-            arrayOf(
                 "/api/actuator/**",
                 "/api/v1/health",
                 "/api/v1/auth/verify",

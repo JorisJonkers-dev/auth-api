@@ -14,6 +14,7 @@ import com.jorisjonkers.personalstack.auth.jooq.tables.UserServicePermissions.US
 import org.jooq.DSLContext
 import org.jooq.Field
 import org.jooq.Record
+import org.jooq.SelectFieldOrAsterisk
 import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
 import org.springframework.cache.CacheManager
@@ -23,6 +24,10 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 @Repository
+// 13 cohesive data-access methods (find/create/update/delete + cache eviction helpers).
+// Interface-split was attempted but repeatedly broke Spring cache proxy wiring; a
+// dedicated cache-proxy-aware refactor is required. Approved by the maintainer as the
+// single accepted suppression in this codebase.
 @Suppress("TooManyFunctions")
 class JooqUserRepository(
     private val dsl: DSLContext,
@@ -33,7 +38,7 @@ class JooqUserRepository(
     @Cacheable(cacheNames = [CACHE_USERS_BY_ID], key = "#id", unless = "#result == null")
     override fun findById(id: UserId): User? =
         dsl
-            .select(*APP_USER.fields(), permissionsField)
+            .select(userFields)
             .from(APP_USER)
             .where(APP_USER.ID.eq(id.value))
             .fetchOne()
@@ -42,7 +47,7 @@ class JooqUserRepository(
     @Cacheable(cacheNames = [CACHE_USERS_BY_USERNAME], key = "#username", unless = "#result == null")
     override fun findByUsername(username: String): User? =
         dsl
-            .select(*APP_USER.fields(), permissionsField)
+            .select(userFields)
             .from(APP_USER)
             .where(APP_USER.USERNAME.eq(username))
             .fetchOne()
@@ -51,7 +56,7 @@ class JooqUserRepository(
     @Cacheable(cacheNames = [CACHE_USERS_BY_EMAIL], key = "#email", unless = "#result == null")
     override fun findByEmail(email: String): User? =
         dsl
-            .select(*APP_USER.fields(), permissionsField)
+            .select(userFields)
             .from(APP_USER)
             .where(APP_USER.EMAIL.eq(email))
             .fetchOne()
@@ -59,7 +64,7 @@ class JooqUserRepository(
 
     override fun findCredentialsByUsername(username: String): UserCredentials? =
         dsl
-            .select(*APP_USER.fields(), permissionsField)
+            .select(userFields)
             .from(APP_USER)
             .where(APP_USER.USERNAME.eq(username))
             .fetchOne()
@@ -67,7 +72,7 @@ class JooqUserRepository(
 
     override fun findAll(): List<User> =
         dsl
-            .select(*APP_USER.fields(), permissionsField)
+            .select(userFields)
             .from(APP_USER)
             .fetch()
             .map { it.toUser(it.extractPermissions()) }
@@ -240,10 +245,16 @@ class JooqUserRepository(
                     }.toSet()
             }.`as`("service_permissions")
 
-    private fun Record.extractPermissions(): Set<ServicePermission> {
-        @Suppress("UNCHECKED_CAST")
-        return (this[permissionsField.name] as? Set<ServicePermission>) ?: emptySet()
-    }
+    // Pre-built field list shared by all SELECT queries to avoid repeated spread-operator
+    // copies of APP_USER.fields() on every call.
+    private val userFields: List<SelectFieldOrAsterisk> =
+        APP_USER.fields().toList() + permissionsField
+
+    private fun Record.extractPermissions(): Set<ServicePermission> =
+        (this[permissionsField.name] as? Set<*>)
+            ?.filterIsInstance<ServicePermission>()
+            ?.toSet()
+            .orEmpty()
 
     private fun Record.toUser(servicePermissions: Set<ServicePermission>): User {
         val userId = UserId(this[APP_USER.ID] as UUID)

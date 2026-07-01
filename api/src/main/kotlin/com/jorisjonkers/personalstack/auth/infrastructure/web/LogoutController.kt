@@ -30,7 +30,7 @@ class LogoutController(
     fun logout(
         request: HttpServletRequest,
         response: HttpServletResponse,
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         clearSession(request, response)
         return ResponseEntity.noContent().build()
     }
