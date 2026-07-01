@@ -28,7 +28,7 @@ class SpringCommandBus(
                 val commandType =
                     resolveCommandType(handler)
                         ?: error("Cannot determine command type for ${handler::class.simpleName}")
-                put(commandType, erased(handler))
+                this[commandType] = erased(handler)
             }
         }
 

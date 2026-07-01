@@ -74,9 +74,12 @@ class LoginController(
         username: String,
         password: String,
     ): UserCredentials {
-        val credentials =
-            userRepository.findCredentialsByUsername(username) ?: throw InvalidCredentialsException()
-        if (!passwordEncoder.matches(password, credentials.passwordHash)) throw InvalidCredentialsException()
+        val credentials = userRepository.findCredentialsByUsername(username)
+        // Validate credential presence and password in one throw site to avoid ThrowsCount violation.
+        // EmailNotConfirmedException is a distinct error that must still surface separately.
+        if (credentials == null || !passwordEncoder.matches(password, credentials.passwordHash)) {
+            throw InvalidCredentialsException()
+        }
         if (!credentials.emailConfirmed) throw EmailNotConfirmedException()
         return credentials
     }

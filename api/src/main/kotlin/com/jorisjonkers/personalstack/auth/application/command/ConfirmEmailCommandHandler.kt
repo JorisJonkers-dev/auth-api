@@ -23,11 +23,15 @@ class ConfirmEmailCommandHandler(
     }
 
     private fun resolveValidToken(rawToken: String): EmailConfirmationToken {
-        val token =
-            emailConfirmationTokenRepository.findByToken(rawToken)
-                ?: throw InvalidConfirmationTokenException("Confirmation token not found")
-        if (token.isUsed()) throw InvalidConfirmationTokenException("Confirmation token has already been used")
-        if (token.isExpired()) throw InvalidConfirmationTokenException("Confirmation token has expired")
-        return token
+        val token = emailConfirmationTokenRepository.findByToken(rawToken)
+        val invalidReason =
+            when {
+                token == null -> "Confirmation token not found"
+                token.isUsed() -> "Confirmation token has already been used"
+                token.isExpired() -> "Confirmation token has expired"
+                else -> null
+            }
+        invalidReason?.let { throw InvalidConfirmationTokenException(it) }
+        return checkNotNull(token) { "token was validated non-null above" }
     }
 }

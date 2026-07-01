@@ -5,6 +5,10 @@ import com.jorisjonkers.personalstack.auth.domain.model.User
 import com.jorisjonkers.personalstack.auth.domain.model.UserCredentials
 import com.jorisjonkers.personalstack.auth.domain.model.UserId
 
+// 13 cohesive data-access methods mirroring the contract implemented by JooqUserRepository.
+// The same suppression is approved there; the interface and its implementation are the same case.
+// An interface-split would require duplicating the Spring cache proxy wiring and has been deferred.
+@Suppress("TooManyFunctions")
 interface UserRepository {
     fun findById(id: UserId): User?
 

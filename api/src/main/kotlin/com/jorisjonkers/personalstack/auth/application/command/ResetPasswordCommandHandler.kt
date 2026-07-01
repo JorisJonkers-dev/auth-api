@@ -22,11 +22,15 @@ class ResetPasswordCommandHandler(
     }
 
     private fun resolveValidToken(rawToken: String): PasswordResetToken {
-        val token =
-            passwordResetTokenRepository.findByToken(rawToken)
-                ?: throw InvalidResetTokenException("Password reset token not found")
-        if (token.isUsed()) throw InvalidResetTokenException("Password reset token has already been used")
-        if (token.isExpired()) throw InvalidResetTokenException("Password reset token has expired")
-        return token
+        val token = passwordResetTokenRepository.findByToken(rawToken)
+        val invalidReason =
+            when {
+                token == null -> "Password reset token not found"
+                token.isUsed() -> "Password reset token has already been used"
+                token.isExpired() -> "Password reset token has expired"
+                else -> null
+            }
+        invalidReason?.let { throw InvalidResetTokenException(it) }
+        return checkNotNull(token) { "token was validated non-null above" }
     }
 }
