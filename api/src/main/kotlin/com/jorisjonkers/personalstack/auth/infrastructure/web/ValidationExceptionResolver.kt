@@ -27,7 +27,6 @@ class ValidationExceptionResolver(
     override fun resolveException(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        @Suppress("UNUSED_PARAMETER")
         handler: Any?,
         ex: Exception,
     ): ModelAndView? {

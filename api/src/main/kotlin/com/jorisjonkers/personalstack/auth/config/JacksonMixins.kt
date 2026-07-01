@@ -8,6 +8,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.jorisjonkers.personalstack.auth.domain.model.UserId
 import java.util.UUID
 
+// Jackson mixin: constructor parameters are consumed by Jackson via @JsonCreator
+// during deserialization and are intentionally not referenced in the class body.
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
 @JsonAutoDetect(
     fieldVisibility = JsonAutoDetect.Visibility.ANY,
@@ -15,18 +17,19 @@ import java.util.UUID
     isGetterVisibility = JsonAutoDetect.Visibility.NONE,
 )
 @JsonIgnoreProperties(ignoreUnknown = true)
-abstract class AuthenticatedUserMixin
+class AuthenticatedUserMixin
     @JsonCreator
     constructor(
-        @JsonProperty("userId") userId: UserId,
-        @JsonProperty("username") username: String,
-        @JsonProperty("roles") roles: List<String>,
-        @JsonProperty("passwordHash") passwordHash: String,
+        @param:JsonProperty("userId") val userId: UserId,
+        @param:JsonProperty("username") val username: String,
+        @param:JsonProperty("roles") val roles: List<String>,
+        @param:JsonProperty("passwordHash") val passwordHash: String,
     )
 
+// Jackson mixin: constructor parameter consumed by Jackson via @JsonCreator.
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
-abstract class UserIdMixin
+class UserIdMixin
     @JsonCreator
     constructor(
-        @JsonProperty("value") value: UUID,
+        @param:JsonProperty("value") val value: UUID,
     )

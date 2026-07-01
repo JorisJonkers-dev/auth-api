@@ -105,7 +105,6 @@ class GlobalExceptionHandlerTest {
     }
 
     /** Simple JavaBean for creating [BeanPropertyBindingResult] with a valid property. */
-    @Suppress("unused")
     class ValidationTarget {
         var username: String = ""
     }

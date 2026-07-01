@@ -35,67 +35,63 @@ class LoginController(
     private val totpService: TotpService,
     private val jwtDecoder: JwtDecoder,
 ) {
-    @Suppress("ThrowsCount")
     @PostMapping("/login")
     fun login(
         @Valid @RequestBody request: LoginRequest,
     ): ResponseEntity<LoginResponse> {
         validateRequestBody(request)
-        val credentials =
-            userRepository.findCredentialsByUsername(request.username)
-                ?: throw InvalidCredentialsException()
-
-        if (!passwordEncoder.matches(request.password, credentials.passwordHash)) {
-            throw InvalidCredentialsException()
-        }
-
-        if (!credentials.emailConfirmed) {
-            throw EmailNotConfirmedException()
-        }
-
-        if (credentials.totpEnabled) {
-            val challengeToken =
-                tokenService.createTotpChallengeToken(
-                    userId = credentials.userId.value.toString(),
-                    username = credentials.username,
-                )
-            return ResponseEntity.ok(
+        val credentials = authenticatePassword(request.username, request.password)
+        return if (credentials.totpEnabled) {
+            ResponseEntity.ok(
                 LoginResponse(
                     totpRequired = true,
-                    totpChallengeToken = challengeToken,
+                    totpChallengeToken =
+                        tokenService.createTotpChallengeToken(
+                            userId = credentials.userId.value.toString(),
+                            username = credentials.username,
+                        ),
                 ),
             )
+        } else {
+            ResponseEntity.ok(issueFullTokens(credentials))
         }
-
-        return ResponseEntity.ok(issueFullTokens(credentials))
     }
 
-    @Suppress("ThrowsCount")
     @PostMapping("/totp-challenge")
     fun totpChallenge(
         @Valid @RequestBody request: TotpChallengeRequest,
     ): ResponseEntity<LoginResponse> {
         validateRequestBody(request)
-        val jwt = decodeChallengeToken(request.totpChallengeToken)
-        val userId = UserId(UUID.fromString(jwt.subject))
-
-        val credentials =
-            userRepository.findCredentialsByUsername(jwt.getClaim("username"))
-                ?: throw InvalidCredentialsException()
-
-        if (credentials.userId != userId) {
-            throw InvalidCredentialsException()
-        }
-
+        val credentials = resolveTotpCredentials(request.totpChallengeToken)
         val totpSecret =
             credentials.totpSecret
                 ?: throw InvalidTotpStateException("TOTP not configured for this account")
-
-        if (!totpService.verifyCode(totpSecret, request.code)) {
-            throw InvalidTotpCodeException()
-        }
-
+        if (!totpService.verifyCode(totpSecret, request.code)) throw InvalidTotpCodeException()
         return ResponseEntity.ok(issueFullTokens(credentials))
+    }
+
+    private fun authenticatePassword(
+        username: String,
+        password: String,
+    ): UserCredentials {
+        val credentials = userRepository.findCredentialsByUsername(username)
+        // Validate credential presence and password in one throw site to avoid ThrowsCount violation.
+        // EmailNotConfirmedException is a distinct error that must still surface separately.
+        if (credentials == null || !passwordEncoder.matches(password, credentials.passwordHash)) {
+            throw InvalidCredentialsException()
+        }
+        if (!credentials.emailConfirmed) throw EmailNotConfirmedException()
+        return credentials
+    }
+
+    private fun resolveTotpCredentials(totpChallengeToken: String): UserCredentials {
+        val jwt = decodeChallengeToken(totpChallengeToken)
+        val userId = UserId(UUID.fromString(jwt.subject))
+        val credentials =
+            userRepository.findCredentialsByUsername(jwt.getClaim("username"))
+                ?: throw InvalidCredentialsException()
+        if (credentials.userId != userId) throw InvalidCredentialsException()
+        return credentials
     }
 
     @PostMapping("/refresh")

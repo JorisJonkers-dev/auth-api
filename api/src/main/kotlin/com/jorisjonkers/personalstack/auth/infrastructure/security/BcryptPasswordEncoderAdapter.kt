@@ -8,7 +8,8 @@ import org.springframework.stereotype.Component
 class BcryptPasswordEncoderAdapter : PasswordEncoder {
     private val bcrypt = BCryptPasswordEncoder()
 
-    override fun encode(rawPassword: String): String = bcrypt.encode(rawPassword)!!
+    override fun encode(rawPassword: String): String =
+        bcrypt.encode(rawPassword) ?: error("BCryptPasswordEncoder returned null for non-null input")
 
     override fun matches(
         rawPassword: String,

@@ -79,7 +79,7 @@ class AdminController(
     @DeleteMapping("/{id}")
     fun deleteUser(
         @PathVariable id: UUID,
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         deleteUserCommandHandler.handle(DeleteUserCommand(UserId(id)))
         return ResponseEntity.noContent().build()
     }

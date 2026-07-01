@@ -32,7 +32,7 @@ class AuthVerificationController(
         @AuthenticationPrincipal user: AuthenticatedUser,
         session: HttpSession,
         @RequestHeader(value = "X-Forwarded-Host", required = false) xForwardedHost: String?,
-    ): ResponseEntity<Void> {
+    ): ResponseEntity<Unit> {
         touchSession(session)
 
         val requiredPermission = ServicePermission.fromHost(xForwardedHost)

@@ -29,15 +29,23 @@ class RegisterUserCommandHandler(
     private val rabbitMqMessagingProperties: RabbitMqMessagingProperties,
     private val emailConfirmationTokenRepository: EmailConfirmationTokenRepository,
 ) : CommandHandler<RegisterUserCommand> {
-    @Suppress("LongMethod")
     override fun handle(command: RegisterUserCommand) {
+        checkNoDuplicates(command)
+        val savedUser = createUser(command)
+        val confirmationToken = createAndSaveConfirmationToken(savedUser)
+        publishEvents(savedUser, confirmationToken)
+    }
+
+    private fun checkNoDuplicates(command: RegisterUserCommand) {
         if (userRepository.existsByUsername(command.username)) {
             throw DuplicateUsernameException(command.username)
         }
         if (userRepository.existsByEmail(command.email)) {
             throw DuplicateEmailException(command.email)
         }
+    }
 
+    private fun createUser(command: RegisterUserCommand): User {
         val now = Instant.now()
         val user =
             User(
@@ -53,24 +61,32 @@ class RegisterUserCommandHandler(
                 updatedAt = now,
             )
         val passwordHash = passwordEncoder.encode(command.password)
-        val savedUser = userRepository.create(user, passwordHash)
+        return userRepository.create(user, passwordHash)
+    }
 
-        val confirmationToken =
+    private fun createAndSaveConfirmationToken(user: User): EmailConfirmationToken {
+        val token =
             EmailConfirmationToken(
                 id = UUID.randomUUID(),
-                userId = savedUser.id,
+                userId = user.id,
                 token = UUID.randomUUID().toString(),
                 expiresAt = Instant.now().plus(TOKEN_EXPIRY_HOURS, ChronoUnit.HOURS),
                 usedAt = null,
                 createdAt = Instant.now(),
             )
-        emailConfirmationTokenRepository.save(confirmationToken)
+        emailConfirmationTokenRepository.save(token)
+        return token
+    }
 
+    private fun publishEvents(
+        user: User,
+        confirmationToken: EmailConfirmationToken,
+    ) {
         val event =
             UserRegisteredEvent(
-                userId = savedUser.id,
-                username = savedUser.username,
-                email = savedUser.email,
+                userId = user.id,
+                username = user.username,
+                email = user.email,
             )
         // Intra-service event (Spring Modulith)
         eventPublisher.publishEvent(event)
@@ -80,9 +96,9 @@ class RegisterUserCommandHandler(
         // Email confirmation event
         eventPublisher.publishEvent(
             EmailConfirmationRequestedEvent(
-                userId = savedUser.id,
-                username = savedUser.username,
-                email = savedUser.email,
+                userId = user.id,
+                username = user.username,
+                email = user.email,
                 confirmationToken = confirmationToken.token,
             ),
         )

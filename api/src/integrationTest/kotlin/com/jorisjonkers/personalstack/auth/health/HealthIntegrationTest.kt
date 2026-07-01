@@ -60,15 +60,12 @@ class HealthIntegrationTest : IntegrationTestBase() {
         // the auto-registered discoveryComposite is intentionally
         // uninitialised in this stack; that should not break the test.
         val downComponents =
-            @Suppress("DEPRECATION")
             components
-                .fields()
-                .asSequence()
+                .properties()
                 .filter { (_, node) ->
                     val status = node["status"]?.asText()
                     status == "DOWN" || status == "OUT_OF_SERVICE"
                 }.map { (name, node) -> "$name=${node["status"]?.asText()}" }
-                .toList()
 
         assertThat(downComponents)
             .describedAs("composite UP but a contributor is DOWN: $downComponents full=$body")

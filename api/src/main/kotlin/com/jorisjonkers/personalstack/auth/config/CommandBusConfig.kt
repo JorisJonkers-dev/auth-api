@@ -6,6 +6,7 @@ import com.jorisjonkers.personalstack.common.command.CommandHandler
 import org.springframework.aop.support.AopUtils
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import java.lang.reflect.InvocationTargetException
 import kotlin.reflect.KClass
 import kotlin.reflect.full.allSupertypes
 
@@ -18,22 +19,24 @@ class CommandBusConfig {
 class SpringCommandBus(
     handlers: List<CommandHandler<*>>,
 ) : CommandBus {
-    private val handlerMap: Map<KClass<*>, CommandHandler<*>> =
+    // Each value is a type-erased adapter created once at registration time. Calling
+    // CommandHandler<*>.handle via the erased bridge method avoids an unchecked cast —
+    // the KClass key guarantees only the matching command type reaches each handler.
+    private val handlerMap: Map<KClass<*>, (Command) -> Unit> =
         buildMap {
             for (handler in handlers) {
                 val commandType =
                     resolveCommandType(handler)
                         ?: error("Cannot determine command type for ${handler::class.simpleName}")
-                put(commandType, handler)
+                this[commandType] = erased(handler)
             }
         }
 
-    @Suppress("UNCHECKED_CAST")
     override fun <T : Command> dispatch(command: T) {
-        val handler =
-            handlerMap[command::class] as? CommandHandler<T>
+        val adapter =
+            handlerMap[command::class]
                 ?: error("No handler registered for ${command::class.simpleName}")
-        handler.handle(command)
+        adapter(command)
     }
 
     // The handler may be wrapped in a CGLIB proxy (Spring AOP) which
@@ -51,4 +54,24 @@ class SpringCommandBus(
             ?.firstOrNull()
             ?.type
             ?.classifier as? KClass<*>
+
+    companion object {
+        // The JVM erases CommandHandler<T>.handle to handle(Command), so we can
+        // look up the method by the erased signature and invoke it directly.
+        // This avoids a Kotlin UNCHECKED_CAST while staying type-safe: dispatch()
+        // routes only the matching KClass to each handler.
+        private val handleMethod =
+            CommandHandler::class.java.getMethod("handle", Command::class.java)
+
+        private fun erased(handler: CommandHandler<*>): (Command) -> Unit =
+            { command ->
+                try {
+                    handleMethod.invoke(handler, command)
+                } catch (ex: InvocationTargetException) {
+                    // Reflective invoke wraps handler exceptions; rethrow the real cause so
+                    // domain exceptions (e.g. DuplicateUsername) reach the exception handler.
+                    throw ex.cause ?: ex
+                }
+            }
+    }
 }

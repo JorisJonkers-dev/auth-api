@@ -12,6 +12,7 @@ import org.testcontainers.containers.GenericContainer
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.postgresql.PostgreSQLContainer
 import org.testcontainers.rabbitmq.RabbitMQContainer
+import org.testcontainers.utility.DockerImageName
 
 @Tag("integration")
 @SpringBootTest
@@ -41,9 +42,8 @@ abstract class IntegrationTestBase {
                 withPassword("auth_password")
             }
 
-        @Suppress("DEPRECATION")
         private val valkey =
-            GenericContainer<Nothing>("valkey/valkey:7-alpine").apply {
+            GenericContainer<Nothing>(DockerImageName.parse("valkey/valkey:7-alpine")).apply {
                 withExposedPorts(6379)
             }
 

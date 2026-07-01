@@ -52,47 +52,48 @@ class JwtConfig(
      * the previous key remains available for verifying tokens issued before rotation.
      */
     @Bean
-    @Suppress("LongMethod")
-    fun jwkSource(): JWKSource<SecurityContext> {
+    fun jwkSource(): JWKSource<SecurityContext> =
         if (transitEnabled) {
-            val keys: MutableList<JWK> =
-                loadTransitKeys()
-                    .map { key ->
-                        RSAKey
-                            .Builder(key.publicKey)
-                            .keyID(key.keyId)
-                            .build()
-                    }.toMutableList()
-
-            if (signingKeyPem.isNotBlank()) {
-                keys.add(
-                    RSAKey
-                        .Builder(derivePublicKey(parseRsaPrivateKey(signingKeyPem)))
-                        .keyID(CURRENT_KEY_ID)
-                        .build(),
-                )
-            }
-
-            if (previousSigningKeyPem.isNotBlank()) {
-                keys.add(
-                    RSAKey
-                        .Builder(derivePublicKey(parseRsaPrivateKey(previousSigningKeyPem)))
-                        .keyID(PREVIOUS_KEY_ID)
-                        .build(),
-                )
-            }
-
-            return ImmutableJWKSet(JWKSet(keys))
+            buildTransitJwkSource()
+        } else {
+            buildLocalJwkSource()
         }
 
+    private fun buildTransitJwkSource(): JWKSource<SecurityContext> {
+        val keys: MutableList<JWK> =
+            loadTransitKeys()
+                .map { key -> RSAKey.Builder(key.publicKey).keyID(key.keyId).build() }
+                .toMutableList()
+
+        if (signingKeyPem.isNotBlank()) {
+            keys.add(
+                RSAKey
+                    .Builder(derivePublicKey(parseRsaPrivateKey(signingKeyPem)))
+                    .keyID(CURRENT_KEY_ID)
+                    .build(),
+            )
+        }
+
+        if (previousSigningKeyPem.isNotBlank()) {
+            keys.add(
+                RSAKey
+                    .Builder(derivePublicKey(parseRsaPrivateKey(previousSigningKeyPem)))
+                    .keyID(PREVIOUS_KEY_ID)
+                    .build(),
+            )
+        }
+
+        return ImmutableJWKSet(JWKSet(keys))
+    }
+
+    private fun buildLocalJwkSource(): JWKSource<SecurityContext> {
         val keys = mutableListOf<RSAKey>()
 
         if (signingKeyPem.isNotBlank()) {
             val privateKey = parseRsaPrivateKey(signingKeyPem)
-            val publicKey = derivePublicKey(privateKey)
             keys.add(
                 RSAKey
-                    .Builder(publicKey)
+                    .Builder(derivePublicKey(privateKey))
                     .privateKey(privateKey)
                     .keyID(CURRENT_KEY_ID)
                     .build(),
@@ -111,10 +112,9 @@ class JwtConfig(
         // Include the previous key for verification during rotation window
         if (previousSigningKeyPem.isNotBlank()) {
             val prevPrivateKey = parseRsaPrivateKey(previousSigningKeyPem)
-            val prevPublicKey = derivePublicKey(prevPrivateKey)
             keys.add(
                 RSAKey
-                    .Builder(prevPublicKey)
+                    .Builder(derivePublicKey(prevPrivateKey))
                     .privateKey(prevPrivateKey)
                     .keyID(PREVIOUS_KEY_ID)
                     .build(),

@@ -51,6 +51,7 @@
         } ],
         "responses" : {
           "200" : {
+            "content" : { },
             "description" : "OK"
           }
         },
@@ -279,6 +280,7 @@
         "operationId" : "logout",
         "responses" : {
           "200" : {
+            "content" : { },
             "description" : "OK"
           }
         },
@@ -462,6 +464,7 @@
         } ],
         "responses" : {
           "200" : {
+            "content" : { },
             "description" : "OK"
           }
         },
@@ -522,6 +525,7 @@
         },
         "responses" : {
           "200" : {
+            "content" : { },
             "description" : "OK"
           }
         },
