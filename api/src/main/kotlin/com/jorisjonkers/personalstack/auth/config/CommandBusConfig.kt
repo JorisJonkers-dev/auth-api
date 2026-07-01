@@ -62,8 +62,8 @@ class SpringCommandBus(
         private val handleMethod =
             CommandHandler::class.java.getMethod("handle", Command::class.java)
 
-        private fun erased(handler: CommandHandler<*>): (Command) -> Unit = { command ->
-            handleMethod.invoke(handler, command)
+        private fun erased(handler: CommandHandler<*>): (Command) -> Unit {
+            return { command -> handleMethod.invoke(handler, command) }
         }
     }
 }
