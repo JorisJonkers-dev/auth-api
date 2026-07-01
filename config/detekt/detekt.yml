@@ -1,0 +1,114 @@
+# Detekt configuration for auth-api.
+# Extends the convention plugin defaults (buildUponDefaultConfig = true).
+#
+# The default config excludes **/test/** from several style rules that are
+# overly strict for test code (FunctionNaming, MagicNumber, TooManyFunctions,
+# UnsafeCallOnNullableType, etc.).  Integration tests live in **/integrationTest/**
+# which is NOT covered by the upstream excludes, so we replicate those exclusions
+# here with the integrationTest directory added.
+
+naming:
+  FunctionNaming:
+    excludes:
+      - '**/test/**'
+      - '**/integrationTest/**'
+      - '**/androidTest/**'
+      - '**/commonTest/**'
+      - '**/jvmTest/**'
+      - '**/androidUnitTest/**'
+      - '**/androidInstrumentedTest/**'
+      - '**/jsTest/**'
+      - '**/iosTest/**'
+
+complexity:
+  TooManyFunctions:
+    excludes:
+      - '**/test/**'
+      - '**/integrationTest/**'
+      - '**/androidTest/**'
+      - '**/commonTest/**'
+      - '**/jvmTest/**'
+      - '**/androidUnitTest/**'
+      - '**/androidInstrumentedTest/**'
+      - '**/jsTest/**'
+      - '**/iosTest/**'
+  LongMethod:
+    excludes:
+      - '**/test/**'
+      - '**/integrationTest/**'
+  LargeClass:
+    excludes:
+      - '**/test/**'
+      - '**/integrationTest/**'
+
+potential-bugs:
+  UnsafeCallOnNullableType:
+    excludes:
+      - '**/test/**'
+      - '**/integrationTest/**'
+      - '**/androidTest/**'
+      - '**/commonTest/**'
+      - '**/jvmTest/**'
+      - '**/androidUnitTest/**'
+      - '**/androidInstrumentedTest/**'
+      - '**/jsTest/**'
+      - '**/iosTest/**'
+
+style:
+  MagicNumber:
+    excludes:
+      - '**/test/**'
+      - '**/integrationTest/**'
+      - '**/androidTest/**'
+      - '**/commonTest/**'
+      - '**/jvmTest/**'
+      - '**/androidUnitTest/**'
+      - '**/androidInstrumentedTest/**'
+      - '**/jsTest/**'
+      - '**/iosTest/**'
+      - '**/*.kts'
+  MaxLineLength:
+    excludes:
+      - '**/test/**'
+      - '**/integrationTest/**'
+  VarCouldBeVal:
+    excludes:
+      - '**/test/**'
+      - '**/integrationTest/**'
+  UnusedPrivateProperty:
+    excludes:
+      - '**/test/**'
+      - '**/integrationTest/**'
+  UnusedVariable:
+    excludes:
+      - '**/test/**'
+      - '**/integrationTest/**'
+  UnusedPrivateFunction:
+    excludes:
+      - '**/test/**'
+      - '**/integrationTest/**'
+  AbstractClassCanBeConcreteClass:
+    excludes:
+      - '**/test/**'
+      - '**/integrationTest/**'
+  DestructuringDeclarationWithTooManyEntries:
+    excludes:
+      - '**/test/**'
+      - '**/integrationTest/**'
+  UselessCallOnNotNull:
+    excludes:
+      - '**/test/**'
+      - '**/integrationTest/**'
+
+performance:
+  SpreadOperator:
+    excludes:
+      - '**/test/**'
+      - '**/integrationTest/**'
+      - '**/androidTest/**'
+      - '**/commonTest/**'
+      - '**/jvmTest/**'
+      - '**/androidUnitTest/**'
+      - '**/androidInstrumentedTest/**'
+      - '**/jsTest/**'
+      - '**/iosTest/**'
