@@ -36,7 +36,7 @@ jobs:
     needs:
       - 'release-please'
     if: '${{ needs.release-please.outputs.release_created == ''true'' }}'
-    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/container-publish.yml@v0.8.0'
+    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/container-publish.yml@v0.10.2'
     with:
       image-name: 'auth-api/auth-api'
       version: '${{ needs.release-please.outputs.tag_name }}'
@@ -50,7 +50,7 @@ jobs:
     needs:
       - 'release-please'
     if: '${{ needs.release-please.outputs.release_created == ''true'' }}'
-    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/publish-api-clients.yml@v0.8.0'
+    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/publish-api-clients.yml@v0.10.2'
     permissions:
       contents: 'read'
       packages: 'write'

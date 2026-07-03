@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   train:
-    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/crac-train.yml@v0.8.0'
+    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/crac-train.yml@v0.10.2'
     with:
       service-matrix: >-
         [
