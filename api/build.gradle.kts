@@ -1,4 +1,6 @@
 plugins {
+    alias(libs.plugins.jetbrains.kotlin.jvm)
+    alias(libs.plugins.jetbrains.kotlin.spring)
     alias(libs.plugins.jorisjonkers.spring)
     alias(libs.plugins.jorisjonkers.detekt)
     alias(libs.plugins.jorisjonkers.ktlint)
