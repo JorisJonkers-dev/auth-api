@@ -13,6 +13,12 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to publish (e.g. v0.3.0)'
+        required: true
+        type: string
 
 permissions: {}
 
@@ -22,7 +28,7 @@ jobs:
     uses: JorisJonkers-dev/github-workflows/.github/workflows/container-publish.yml@4b444f9a50edf76e4aea4148d73407c34a1e43a4 # v0.12.1
     with:
       image-name: auth-api/auth-api
-      version: ${{ github.ref_name }}
+      version: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
     permissions:
       contents: read
       packages: write
@@ -39,14 +45,14 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
 
       - name: resolve-image-digest
         id: digest
         env:
           GH_TOKEN: ${{ github.token }}
           IMAGE: ghcr.io/jorisjonkers-dev/auth-api/auth-api
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
         run: |
           set -euo pipefail
           printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
@@ -95,9 +101,9 @@ jobs:
     needs: [resolve-image-lock]
     uses: JorisJonkers-dev/github-workflows/.github/workflows/deploy-artifact.yml@4b444f9a50edf76e4aea4148d73407c34a1e43a4 # v0.12.1
     with:
-      ref: ${{ github.ref }}
+      ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
       artifact-name: auth-api
-      artifact-version: ${{ github.ref_name }}
+      artifact-version: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
       schema-version: 0.16.0
       context-ref: ghcr.io/jorisjonkers-dev/cluster-deploy-context-public@sha256:64d00fe03a271dbd03a48005d0a0cc6cc5fe43df23c0e97b649c2f8b3e78b418
       deploy-dir: platform
@@ -136,7 +142,7 @@ jobs:
 
       - uses: actions/checkout@v7
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
 
       - name: build-registry-payload
         env:
@@ -146,7 +152,7 @@ jobs:
           SERVICE_NAME: auth-api
           REPO_OWNER: ${{ github.repository_owner }}
           SOURCE_REPOSITORY: ${{ github.repository }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
         run: |
           set -euo pipefail
           branch="registry-update/${SERVICE_NAME}/${TAG}"
