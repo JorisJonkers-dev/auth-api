@@ -1,0 +1,24 @@
+apiVersion: deployment.jorisjonkers.dev/v2
+kind: Deployment
+metadata:
+  name: auth-api
+spec:
+  schemaVersion: 0.16.0
+  namespace: auth-system
+  platform:
+    layer: apps-core
+  workloads:
+    - name: auth-api
+      image: auth-api
+      health:
+        path: /api/actuator/health/readiness
+        port: 8081
+        timeoutClass: stateless
+        mandatory: true
+      rollbackTargetRetention:
+        minimumDays: 90
+        acknowledged: true
+      routes:
+        - host: auth.jorisjonkers.dev
+          owner: auth-api
+          authMode: anonymous
