@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.2.1...v0.3.0) (2026-07-10)
+
+
+### Features
+
+* **platform:** adopt deploy-platform v2 ([e070194](https://github.com/JorisJonkers-dev/auth-api/commit/e07019478b9669d86f1d9b5499128af3d6362870))
+
 ## [0.2.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.2.0...v0.2.1) (2026-06-29)
 
 
