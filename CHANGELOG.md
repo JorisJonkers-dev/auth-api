@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.3.0...v0.3.1) (2026-07-10)
+
+
+### Bug Fixes
+
+* **ci:** add workflow_dispatch to publish workflow for manual republish ([cce7eda](https://github.com/JorisJonkers-dev/auth-api/commit/cce7eda052d783e38aab9892e2f6144f2b151084))
+
 ## [0.3.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.2.1...v0.3.0) (2026-07-10)
 
 
