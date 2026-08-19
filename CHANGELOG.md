@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/JorisJonkers-dev/auth-api/compare/v0.3.1...v0.3.2) (2026-08-19)
+
+
+### Bug Fixes
+
+* **ci:** bump the reusable workflow pins so job timeouts apply ([#18](https://github.com/JorisJonkers-dev/auth-api/issues/18)) ([05d3a51](https://github.com/JorisJonkers-dev/auth-api/commit/05d3a511028cd9d38ae382c64e19b68595437024))
+
 ## [0.3.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.3.0...v0.3.1) (2026-07-10)
 
 
