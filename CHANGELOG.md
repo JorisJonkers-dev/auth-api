@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.3.2...v0.4.0) (2026-08-20)
+
+
+### Features
+
+* **ci:** publish images for arm64 as well as amd64 ([#20](https://github.com/JorisJonkers-dev/auth-api/issues/20)) ([3874753](https://github.com/JorisJonkers-dev/auth-api/commit/387475385c2289332bd6e29389717e582096b33e))
+
 ## [0.3.2](https://github.com/JorisJonkers-dev/auth-api/compare/v0.3.1...v0.3.2) (2026-08-19)
 
 
