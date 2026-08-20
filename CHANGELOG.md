@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.4.0...v0.4.1) (2026-08-20)
+
+
+### Bug Fixes
+
+* **vault:** add Kubernetes authentication for the Vault session ([#14](https://github.com/JorisJonkers-dev/auth-api/issues/14)) ([b36da1a](https://github.com/JorisJonkers-dev/auth-api/commit/b36da1aba1a70d349506306d0fbeac9e1a583003))
+
 ## [0.4.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.3.2...v0.4.0) (2026-08-20)
 
 
