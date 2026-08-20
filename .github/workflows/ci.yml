@@ -16,6 +16,7 @@ jobs:
   workflow-lint:
     name: 'Workflow Lint'
     runs-on: 'ubuntu-latest'
+    timeout-minutes: 30
     steps:
       - uses: 'actions/checkout@v6'
 
@@ -64,6 +65,7 @@ jobs:
   contract-drift:
     name: 'Contract Drift'
     runs-on: 'ubuntu-latest'
+    timeout-minutes: 30
     permissions:
       contents: 'read'
       packages: 'write'
@@ -110,6 +112,7 @@ jobs:
   pipeline-complete:
     name: 'Pipeline Complete'
     runs-on: 'ubuntu-latest'
+    timeout-minutes: 30
     needs:
       - 'workflow-lint'
       - 'jvm'
