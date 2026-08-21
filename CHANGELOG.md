@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/JorisJonkers-dev/auth-api/compare/v0.4.1...v0.4.2) (2026-08-21)
+
+
+### Bug Fixes
+
+* **platform:** make render-local.sh able to run ([#24](https://github.com/JorisJonkers-dev/auth-api/issues/24)) ([317656b](https://github.com/JorisJonkers-dev/auth-api/commit/317656b535f85b2a838ece22e27bdee025bb05c9))
+
 ## [0.4.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.4.0...v0.4.1) (2026-08-20)
 
 
