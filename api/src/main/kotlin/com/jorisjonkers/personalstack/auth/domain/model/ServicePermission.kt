@@ -52,6 +52,13 @@ enum class ServicePermission(
     // stacked follow-ups (4b adds /mcp + bearer-bypass middleware, 4c adds
     // the actual recall/lesson/decision tools).
     KNOWLEDGE_API("kb"),
+
+    // Outline wiki at notes.jorisjonkers.dev. Outline runs its own OIDC flow, so the
+    // route is `direct` rather than forward-auth protected — the grant is enforced at
+    // the authorization endpoint instead, via DOWNSTREAM_CLIENT_PERMISSIONS, exactly
+    // as n8n does. Outline's own require-invites setting is the second gate, covering
+    // the case where someone already holds a valid authorization code.
+    NOTES("notes"),
     ;
 
     val subdomains: Set<String> = subdomains.toSet()

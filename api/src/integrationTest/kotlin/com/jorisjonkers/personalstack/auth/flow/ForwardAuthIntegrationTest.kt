@@ -176,7 +176,7 @@ class ForwardAuthIntegrationTest : IntegrationTestBase() {
 
     @Test
     fun `USER with no service permissions is denied access to all protected services`() {
-        listOf("vault", "stalwart", "n8n", "grafana", "dashboard").forEach { subdomain ->
+        listOf("vault", "stalwart", "n8n", "grafana", "dashboard", "notes").forEach { subdomain ->
             mockMvc
                 .get("/api/v1/auth/verify") {
                     with(

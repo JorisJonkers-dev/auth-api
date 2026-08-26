@@ -121,6 +121,29 @@ fun buildImmichClient(): RegisteredClient =
         .tokenSettings(defaultTokenSettings())
         .build()
 
+// Outline wiki at notes.jorisjonkers.dev. Outline drives the whole OIDC dance itself
+// rather than sitting behind forward-auth, so the callback path is Outline's own
+// `/auth/oidc.callback` — note the dot, not a slash; a slash silently yields
+// redirect_uri_mismatch. Outline does not use the discovery document, so the auth,
+// token and userinfo URIs are configured explicitly on the Outline side.
+fun buildOutlineClient(secret: String): RegisteredClient =
+    RegisteredClient
+        .withId(deterministicId("outline"))
+        .clientId("outline")
+        .clientSecret("{noop}$secret")
+        .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+        .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
+        .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+        .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+        .redirectUri("https://notes.jorisjonkers.dev/auth/oidc.callback")
+        .redirectUri("https://notes.jorisjonkers.test/auth/oidc.callback")
+        .scope(OidcScopes.OPENID)
+        .scope(OidcScopes.PROFILE)
+        .scope(OidcScopes.EMAIL)
+        .clientSettings(noConsentSettings(requirePkce = false))
+        .tokenSettings(defaultTokenSettings())
+        .build()
+
 fun buildVaultClient(secret: String): RegisteredClient =
     RegisteredClient
         .withId(deterministicId("vault"))
