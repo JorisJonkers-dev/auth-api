@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.4.1...v0.5.0) (2026-08-26)
+
+
+### Features
+
+* **auth:** register Outline as an OIDC client ([#34](https://github.com/JorisJonkers-dev/auth-api/issues/34)) ([f7b1a84](https://github.com/JorisJonkers-dev/auth-api/commit/f7b1a849065a35a2d3c3f0485ad8b852951abbd3))
+
+
+### Bug Fixes
+
+* **platform:** make render-local.sh able to run ([#24](https://github.com/JorisJonkers-dev/auth-api/issues/24)) ([317656b](https://github.com/JorisJonkers-dev/auth-api/commit/317656b535f85b2a838ece22e27bdee025bb05c9))
+
 ## [0.4.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.4.0...v0.4.1) (2026-08-20)
 
 
