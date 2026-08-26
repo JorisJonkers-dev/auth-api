@@ -85,6 +85,7 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
         private const val GRAFANA_CLIENT_SECRET = "grafana-secret"
         private const val N8N_REDIRECT_URI = "https://n8n.jorisjonkers.test/auth/oidc/callback"
         private const val N8N_CLIENT_SECRET = "n8n-secret"
+        private const val OUTLINE_REDIRECT_URI = "https://notes.jorisjonkers.test/auth/oidc.callback"
         private const val RABBITMQ_REDIRECT_URI = "https://rabbitmq.jorisjonkers.test/js/oidc-oauth/login-callback.html"
         private const val VAULT_CLIENT_ID = "vault"
         private const val VAULT_REDIRECT_URI = "https://vault.jorisjonkers.test/ui/vault/auth/oidc/oidc/callback"
@@ -531,6 +532,7 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
         val n8nClient = registeredClientRepository.findByClientId("n8n")
         val rabbitMqClient = registeredClientRepository.findByClientId("rabbitmq")
         val vaultClient = registeredClientRepository.findByClientId(VAULT_CLIENT_ID)
+        val outlineClient = registeredClientRepository.findByClientId("outline")
 
         assertThat(grafanaClient).isNotNull()
         assertThat(grafanaClient!!.redirectUris).contains(GRAFANA_REDIRECT_URI)
@@ -540,6 +542,13 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
         assertThat(n8nClient).isNotNull()
         assertThat(n8nClient!!.redirectUris).contains(N8N_REDIRECT_URI)
         assertThat(n8nClient.clientAuthenticationMethods).contains(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+
+        assertThat(outlineClient).isNotNull()
+        // The dot in `oidc.callback` is Outline's own route shape, not a typo. A slash
+        // here yields redirect_uri_mismatch at sign-in.
+        assertThat(outlineClient!!.redirectUris).contains(OUTLINE_REDIRECT_URI)
+        assertThat(outlineClient.clientAuthenticationMethods).contains(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+        assertThat(outlineClient.scopes).contains(OidcScopes.OPENID, OidcScopes.PROFILE, OidcScopes.EMAIL)
 
         assertThat(rabbitMqClient).isNotNull()
         assertThat(rabbitMqClient!!.redirectUris).contains(RABBITMQ_REDIRECT_URI)
@@ -568,6 +577,7 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
                 Triple("grafana", GRAFANA_REDIRECT_URI, "openid profile email"),
                 Triple(VAULT_CLIENT_ID, VAULT_REDIRECT_URI, "openid profile email"),
                 Triple("n8n", N8N_REDIRECT_URI, "openid profile email"),
+                Triple("outline", OUTLINE_REDIRECT_URI, "openid profile email"),
                 Triple("rabbitmq", RABBITMQ_REDIRECT_URI, "openid profile email"),
                 Triple(HEADLAMP_CLIENT_ID, HEADLAMP_REDIRECT_URI, "openid profile email groups"),
             )
