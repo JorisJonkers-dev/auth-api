@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.5.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.5.0...v0.5.1) (2026-08-27)
+
+
+### Bug Fixes
+
+* **auth:** do not let a broker outage break registration ([#36](https://github.com/JorisJonkers-dev/auth-api/issues/36)) ([fabb8d8](https://github.com/JorisJonkers-dev/auth-api/commit/fabb8d8d6af8672de31aca964b34c02beea9a391))
+* **email:** require EmailService so mail cannot fail silently ([#40](https://github.com/JorisJonkers-dev/auth-api/issues/40)) ([11efc65](https://github.com/JorisJonkers-dev/auth-api/commit/11efc651949b9122a4914cf8fc2df950900ae187))
+* remove an accidentally committed .claude gitlink ([#41](https://github.com/JorisJonkers-dev/auth-api/issues/41)) ([1071472](https://github.com/JorisJonkers-dev/auth-api/commit/107147245a42e747ca3a3f6b8b1235a428a108e6))
+
 ## [0.5.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.4.1...v0.5.0) (2026-08-26)
 
 
