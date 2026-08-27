@@ -74,7 +74,7 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    fun `handleUnexpected returns 500 ProblemDetail with exception class and message`() {
+    fun `handleUnexpected returns 500 ProblemDetail without leaking internals`() {
         val ex = RuntimeException("Something broke")
 
         val response = handler.handleUnexpected(ex, null)
@@ -83,9 +83,23 @@ class GlobalExceptionHandlerTest {
         val body = response.body!!
         assertThat(body.status).isEqualTo(500)
         assertThat(body.title).isEqualTo("Internal Server Error")
-        assertThat(body.detail).isEqualTo("RuntimeException: Something broke")
-        assertThat(body.exception).isEqualTo("java.lang.RuntimeException")
         assertThat(body.type).isEqualTo(URI.create("urn:problem-type:internal-error"))
+        assertThat(body.detail).isEqualTo("Something went wrong on our side. Please try again.")
+    }
+
+    @Test
+    fun `handleUnexpected does not put the exception class or message in the response`() {
+        // An unhandled exception is by definition something the caller cannot
+        // act on, and on an integration failure its message names the
+        // integration and quotes its verbatim rejection -- broker, vault and
+        // mail relay errors all carry host names and credentials context. Both
+        // go to the log instead, where traceId correlates them.
+        val ex = RuntimeException("jdbc:postgresql://db.internal:5432 auth failed for user 'auth'")
+
+        val body = handler.handleUnexpected(ex, null).body!!
+
+        assertThat(body.exception).isNull()
+        assertThat(body.detail).doesNotContain("RuntimeException", "postgresql", "db.internal", "auth failed")
     }
 
     @Test
