@@ -1,5 +1,6 @@
 package com.jorisjonkers.personalstack.auth.application.command
 
+import com.jorisjonkers.personalstack.auth.domain.event.EmailConfirmationRequestedEvent
 import com.jorisjonkers.personalstack.auth.domain.exception.DuplicateEmailException
 import com.jorisjonkers.personalstack.auth.domain.exception.DuplicateUsernameException
 import com.jorisjonkers.personalstack.auth.domain.model.Role
@@ -16,6 +17,7 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
+import org.springframework.amqp.AmqpAuthenticationException
 import org.springframework.context.ApplicationEventPublisher
 
 class RegisterUserCommandHandlerTest {
@@ -70,6 +72,37 @@ class RegisterUserCommandHandlerTest {
                 any(),
             )
         }
+    }
+
+    // The regression this exists for. The broker publish sits between the
+    // committed user row and the confirmation-email event, so when it threw, a
+    // RabbitMQ outage produced an account that existed but could never be
+    // confirmed -- and reported "username already taken" on retry.
+    @Test
+    fun `handle still requests the confirmation email when the broker publish fails`() {
+        val command =
+            RegisterUserCommand(
+                username = "alice",
+                email = "alice@example.com",
+                firstName = "Alice",
+                lastName = "Smith",
+                password = "secret123",
+            )
+        val userSlot = slot<User>()
+
+        every { userRepository.existsByUsername("alice") } returns false
+        every { userRepository.existsByEmail("alice@example.com") } returns false
+        every { passwordEncoder.encode("secret123") } returns "\$2a\$10\$hashed"
+        every { userRepository.create(capture(userSlot), any()) } answers { userSlot.captured }
+        every { rabbitMqEventPublisher.publish(any(), any()) } throws
+            AmqpAuthenticationException(RuntimeException("ACCESS_REFUSED"))
+
+        // Registration completes rather than surfacing the broker failure.
+        handler.handle(command)
+
+        // And the email the user is waiting on is still requested.
+        verify { eventPublisher.publishEvent(any<EmailConfirmationRequestedEvent>()) }
+        verify { emailConfirmationTokenRepository.save(any()) }
     }
 
     @Test

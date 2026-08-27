@@ -14,6 +14,7 @@ import com.jorisjonkers.personalstack.auth.domain.port.UserRepository
 import com.jorisjonkers.personalstack.common.command.CommandHandler
 import com.jorisjonkers.personalstack.common.messaging.RabbitMqEventPublisher
 import com.jorisjonkers.personalstack.common.messaging.RabbitMqMessagingProperties
+import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import java.time.Instant
@@ -29,6 +30,8 @@ class RegisterUserCommandHandler(
     private val rabbitMqMessagingProperties: RabbitMqMessagingProperties,
     private val emailConfirmationTokenRepository: EmailConfirmationTokenRepository,
 ) : CommandHandler<RegisterUserCommand> {
+    private val logger = LoggerFactory.getLogger(RegisterUserCommandHandler::class.java)
+
     override fun handle(command: RegisterUserCommand) {
         checkNoDuplicates(command)
         val savedUser = createUser(command)
@@ -90,8 +93,27 @@ class RegisterUserCommandHandler(
             )
         // Intra-service event (Spring Modulith)
         eventPublisher.publishEvent(event)
-        // Inter-service event (RabbitMQ for other services to consume)
-        rabbitMqEventPublisher.publish(userRegisteredRoutingKey(), event)
+        // Inter-service event (RabbitMQ for other services to consume).
+        //
+        // Deliberately non-fatal. This used to throw straight out of the
+        // handler, and because it sits between the committed user row and the
+        // confirmation-email event below, a broker outage produced an account
+        // that existed, could not be confirmed, and reported "username already
+        // taken" on retry. Losing a notification to other services is a smaller
+        // failure than an unusable account, so the registration completes and
+        // the drop is logged loudly instead.
+        //
+        // There is no outbox here, so the event really is lost rather than
+        // retried; a consumer that must not miss registrations needs one.
+        runCatching { rabbitMqEventPublisher.publish(userRegisteredRoutingKey(), event) }
+            .onFailure { failure ->
+                logger.error(
+                    "Registration completed but the user.registered event was not published " +
+                        "for userId={}; downstream services will not see this registration",
+                    user.id.value,
+                    failure,
+                )
+            }
 
         // Email confirmation event
         eventPublisher.publishEvent(
