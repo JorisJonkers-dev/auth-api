@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/JorisJonkers-dev/auth-api/compare/v0.5.1...v0.5.2) (2026-08-27)
+
+
+### Bug Fixes
+
+* **redis:** give the reconnect handshake room to complete ([#45](https://github.com/JorisJonkers-dev/auth-api/issues/45)) ([6cd5d0e](https://github.com/JorisJonkers-dev/auth-api/commit/6cd5d0e03470160649e35b80b809a67f660dfe2b))
+
 ## [0.5.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.5.0...v0.5.1) (2026-08-27)
 
 
