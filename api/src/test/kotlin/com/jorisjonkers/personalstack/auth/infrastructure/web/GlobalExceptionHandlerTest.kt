@@ -74,7 +74,7 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    fun `handleUnexpected returns 500 ProblemDetail with exception class and message`() {
+    fun `handleUnexpected returns 500 ProblemDetail without exception internals`() {
         val ex = RuntimeException("Something broke")
 
         val response = handler.handleUnexpected(ex, null)
@@ -83,8 +83,8 @@ class GlobalExceptionHandlerTest {
         val body = response.body!!
         assertThat(body.status).isEqualTo(500)
         assertThat(body.title).isEqualTo("Internal Server Error")
-        assertThat(body.detail).isEqualTo("RuntimeException: Something broke")
-        assertThat(body.exception).isEqualTo("java.lang.RuntimeException")
+        assertThat(body.detail).doesNotContain("RuntimeException", "Something broke")
+        assertThat(body.exception).isNull()
         assertThat(body.type).isEqualTo(URI.create("urn:problem-type:internal-error"))
     }
 
