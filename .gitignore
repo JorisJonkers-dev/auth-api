@@ -28,3 +28,6 @@ templates/**/.specify/
 templates/**/.claude/commands/speckit*.md
 
 !gradle/wrapper/gradle-wrapper.jar
+
+# Local Claude Code session state; never committed.
+.claude/
