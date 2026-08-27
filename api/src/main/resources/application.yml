@@ -65,7 +65,22 @@ spring:
     redis:
       host: ${VALKEY_HOST:localhost}
       port: ${VALKEY_PORT:6379}
-      timeout: 500ms
+      # Spring Boot builds Lettuce with TimeoutOptions.enabled(), so this
+      # command timeout also bounds the handshake on a *reconnect* -- not just
+      # steady-state commands. At 500ms that was tight enough to fail: when the
+      # endpoint dropped, the next request re-established the connection and the
+      # handshake blew the budget, surfacing as
+      #   RedisConnectionFailureException: Unable to connect to Redis
+      # and a 500 to the caller. Redis backs @EnableRedisHttpSession here, so
+      # every request pays that cost, not just the cached reads.
+      #
+      # Valkey answers in ~2ms with an 84ms worst-case spike, so 2s is far above
+      # anything it does under load; the headroom is for the client side -- a GC
+      # pause or CFS throttling landing on top of a reconnect.
+      timeout: 2s
+      # TCP connect only. Kept explicit so the handshake budget above is not the
+      # thing silently governing how long a dead node takes to fail.
+      connect-timeout: 2s
   cache:
     type: redis
     redis:
