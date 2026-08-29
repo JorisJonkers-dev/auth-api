@@ -40,4 +40,36 @@ class RegisteredClientsTest {
                 "http://localhost/callback",
             )
     }
+
+    @Test
+    fun `hermes is a public PKCE client whose redirect matches the dashboard callback`() {
+        val client = buildHermesClient()
+
+        assertThat(client.id).isEqualTo(UUID.nameUUIDFromBytes("hermes".toByteArray()).toString())
+        assertThat(client.clientId).isEqualTo("hermes")
+        // Hermes' dashboard has no client-secret field, so a confidential
+        // client could not authenticate at all.
+        assertThat(client.clientAuthenticationMethods).containsExactly(ClientAuthenticationMethod.NONE)
+        assertThat(client.clientSettings.isRequireProofKey).isTrue
+        assertThat(client.authorizationGrantTypes)
+            .containsExactlyInAnyOrder(
+                AuthorizationGrantType.AUTHORIZATION_CODE,
+                AuthorizationGrantType.REFRESH_TOKEN,
+            )
+        assertThat(client.scopes)
+            .containsExactlyInAnyOrder(
+                OidcScopes.OPENID,
+                OidcScopes.PROFILE,
+                OidcScopes.EMAIL,
+            )
+        // Hermes constructs the callback as <public_url>/auth/callback
+        // verbatim. If these drift from HERMES_DASHBOARD_PUBLIC_URL in
+        // fleet-infra, the login fails at the redirect with a mismatch the
+        // dashboard reports only as a generic error.
+        assertThat(client.redirectUris)
+            .containsExactlyInAnyOrder(
+                "https://hermes.jorisjonkers.dev/auth/callback",
+                "https://hermes.jorisjonkers.test/auth/callback",
+            )
+    }
 }

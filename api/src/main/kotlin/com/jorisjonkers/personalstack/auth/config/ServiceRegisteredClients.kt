@@ -104,6 +104,31 @@ fun buildHeadlampClient(): RegisteredClient =
         .tokenSettings(defaultTokenSettings())
         .build()
 
+fun buildHermesClient(): RegisteredClient =
+    RegisteredClient
+        .withId(deterministicId("hermes"))
+        .clientId("hermes")
+        // Public client with PKCE — same pattern as headlamp and rabbitmq.
+        // Hermes' dashboard takes only HERMES_DASHBOARD_OIDC_ISSUER,
+        // _CLIENT_ID and _SCOPES; it has no field for a client secret, so a
+        // confidential client could not be configured even if we wanted one.
+        // The dashboard proves possession of the auth code with the PKCE
+        // verifier instead, and there is no secret to rotate in Vault.
+        .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
+        .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+        .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+        // Hermes builds the callback as <public_url>/auth/callback verbatim,
+        // where public_url is HERMES_DASHBOARD_PUBLIC_URL. These must match
+        // that construction exactly or the flow fails at the redirect.
+        .redirectUri("https://hermes.jorisjonkers.dev/auth/callback")
+        .redirectUri("https://hermes.jorisjonkers.test/auth/callback")
+        .scope(OidcScopes.OPENID)
+        .scope(OidcScopes.PROFILE)
+        .scope(OidcScopes.EMAIL)
+        .clientSettings(noConsentSettings(requirePkce = true))
+        .tokenSettings(defaultTokenSettings())
+        .build()
+
 fun buildImmichClient(): RegisteredClient =
     RegisteredClient
         .withId(deterministicId("immich"))

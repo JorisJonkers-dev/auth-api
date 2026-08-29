@@ -123,6 +123,7 @@ class AuthorizationServerConfig(
             buildVaultClient(vaultClientSecret),
             buildHeadlampClient(),
             buildImmichClient(),
+            buildHermesClient(),
         )
 
     // The JdbcOAuth2AuthorizationService constructor calls getColumnMetadata()
@@ -242,6 +243,10 @@ class AuthorizationServerConfig(
                 "headlamp" to ServicePermission.DASHBOARD,
                 "rabbitmq" to ServicePermission.RABBITMQ,
                 "immich" to ServicePermission.IMMICH,
+                // Hermes runs its own OIDC flow, so its route carries no
+                // forward-auth and the HERMES grant is enforced here at the
+                // authorize endpoint instead — the same shape as outline.
+                "hermes" to ServicePermission.HERMES,
             )
     }
 }
