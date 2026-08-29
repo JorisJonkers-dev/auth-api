@@ -36,6 +36,8 @@ class ServicePermissionTest {
         "kb.jorisjonkers.test, KNOWLEDGE_API",
         "notes.jorisjonkers.dev, NOTES",
         "notes.jorisjonkers.test, NOTES",
+        "hermes.jorisjonkers.dev, HERMES",
+        "hermes.jorisjonkers.test, HERMES",
     )
     fun `fromHost resolves production and local dev hostnames`(
         host: String,

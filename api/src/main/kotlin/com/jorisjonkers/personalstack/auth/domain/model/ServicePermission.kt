@@ -59,6 +59,13 @@ enum class ServicePermission(
     // as n8n does. Outline's own require-invites setting is the second gate, covering
     // the case where someone already holds a valid authorization code.
     NOTES("notes"),
+
+    // Hermes Agent's web dashboard at hermes.jorisjonkers.dev. LAN-only
+    // (traefik-lan) and additionally gated by Hermes' own basic auth, but
+    // forward-auth still resolves the permission from the host, so the entry
+    // is required or every request is denied. Grant sparingly: the dashboard
+    // is a control plane for an agent that executes shell commands.
+    HERMES("hermes"),
     ;
 
     val subdomains: Set<String> = subdomains.toSet()
