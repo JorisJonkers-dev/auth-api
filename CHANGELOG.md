@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.5.2...v0.6.0) (2026-08-29)
+
+
+### Features
+
+* **auth:** add HERMES service permission ([#47](https://github.com/JorisJonkers-dev/auth-api/issues/47)) ([5b414fc](https://github.com/JorisJonkers-dev/auth-api/commit/5b414fcbfbe324f3811105fe4d54f1cee25dea37))
+* **auth:** register hermes as an OIDC client ([#49](https://github.com/JorisJonkers-dev/auth-api/issues/49)) ([6275e33](https://github.com/JorisJonkers-dev/auth-api/commit/6275e3362a9cb1f9cfbaade4dbb09ee91afe9117))
+
 ## [0.5.2](https://github.com/JorisJonkers-dev/auth-api/compare/v0.5.1...v0.5.2) (2026-08-27)
 
 
