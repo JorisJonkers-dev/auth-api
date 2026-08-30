@@ -3,6 +3,8 @@ package com.jorisjonkers.personalstack.auth.config
 import com.jorisjonkers.personalstack.auth.domain.model.ServicePermission
 import com.jorisjonkers.personalstack.auth.domain.model.UserId
 import com.jorisjonkers.personalstack.auth.infrastructure.security.AuthenticatedUser
+import com.nimbusds.jose.jwk.source.JWKSource
+import com.nimbusds.jose.proc.SecurityContext
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -79,7 +81,25 @@ class AuthorizationServerConfig(
     fun authorizationServerSecurityFilterChain(
         http: HttpSecurity,
         corsConfigurationSource: CorsConfigurationSource,
+        jwkSource: JWKSource<SecurityContext>,
     ): SecurityFilterChain {
+        // Hand the JWK source over explicitly.
+        //
+        // OAuth2AuthorizationServerConfigurer registers NimbusJwkSetEndpointFilter
+        // only when it can resolve a JWKSource, and it looks first at this shared
+        // object before falling back to a bean lookup by
+        // ResolvableType.forClassWithGenerics(JWKSource::class, SecurityContext::class).
+        // That fallback does not match the Kotlin `JWKSource<SecurityContext>` bean
+        // in JwtConfig, so the filter was never registered and /api/oauth2/jwks
+        // reached the DispatcherServlet instead:
+        //
+        //   NoResourceFoundException: No static resource api/oauth2/jwks
+        //
+        // Every other endpoint on this chain was fine -- /api/oauth2/authorize
+        // answers on its customised path -- which is what made the JWK Set look
+        // like a routing problem rather than a missing filter.
+        http.setSharedObject(JWKSource::class.java, jwkSource)
+
         val authServerConfigurer = OAuth2AuthorizationServerConfigurer()
         authServerConfigurer.oidc(Customizer.withDefaults())
 
