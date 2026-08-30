@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.6.0...v0.6.1) (2026-08-30)
+
+
+### Bug Fixes
+
+* **auth:** make the JWK Set endpoint publicly readable ([#50](https://github.com/JorisJonkers-dev/auth-api/issues/50)) ([6d6e230](https://github.com/JorisJonkers-dev/auth-api/commit/6d6e23053b9bd6d97d0184f98680beee624086e8))
+
 ## [0.6.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.5.2...v0.6.0) (2026-08-29)
 
 
