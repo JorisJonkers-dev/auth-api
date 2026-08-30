@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.2](https://github.com/JorisJonkers-dev/auth-api/compare/v0.6.1...v0.6.2) (2026-08-30)
+
+
+### Bug Fixes
+
+* **auth:** register the JWK Set endpoint filter ([#52](https://github.com/JorisJonkers-dev/auth-api/issues/52)) ([72970b1](https://github.com/JorisJonkers-dev/auth-api/commit/72970b1d1fed2b39ed04afe733fc5d1c9ffbf51d))
+
 ## [0.6.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.6.0...v0.6.1) (2026-08-30)
 
 
