@@ -119,8 +119,7 @@ class AuthorizationServerConfig(
                     authorize.requestMatchers(PathPatternRequestMatcher.pathPattern(endpoint)).permitAll()
                 }
                 authorize.anyRequest().authenticated()
-            }
-            .addFilterAfter(downstreamClientAuthorizationFilter(), SecurityContextHolderFilter::class.java)
+            }.addFilterAfter(downstreamClientAuthorizationFilter(), SecurityContextHolderFilter::class.java)
             .securityContext { ctx ->
                 ctx.securityContextRepository(HttpSessionSecurityContextRepository())
             }.exceptionHandling { exceptions ->
