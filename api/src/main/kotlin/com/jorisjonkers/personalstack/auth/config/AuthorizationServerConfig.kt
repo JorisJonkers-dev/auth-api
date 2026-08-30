@@ -95,7 +95,31 @@ class AuthorizationServerConfig(
             .securityMatcher(oauthEndpoints)
             .cors { it.configurationSource(corsConfigurationSource) }
             .with(authServerConfigurer, Customizer.withDefaults())
-            .authorizeHttpRequests { it.anyRequest().authenticated() }
+            .authorizeHttpRequests { authorize ->
+                // The JWK Set endpoint publishes public signing keys and must be
+                // readable without authentication: every relying party fetches it
+                // to verify an id_token signature, and none of them has a session.
+                //
+                // Without this, anyRequest().authenticated() gated it. Vault's OIDC
+                // login exchanged its code successfully and then failed verifying
+                // the id_token, because fetching the keys returned the auth-ui SPA:
+                //
+                //   failed to verify signature: fetching keys oidc: failed to
+                //   decode keys: expected Content-Type = application/json, got
+                //   "text/html" ... invalid character '<'
+                //
+                // The HTML was /login. With an Accept: application/json request the
+                // same endpoint answered 401, which is the honest shape of the bug.
+                //
+                // The sibling discovery document was never affected -- its filter
+                // short-circuits before authorization -- so this looked like a
+                // Cloudflare or routing fault long before it looked like an
+                // authorization rule.
+                PUBLIC_OAUTH2_ENDPOINTS.forEach { endpoint ->
+                    authorize.requestMatchers(PathPatternRequestMatcher.pathPattern(endpoint)).permitAll()
+                }
+                authorize.anyRequest().authenticated()
+            }
             .addFilterAfter(downstreamClientAuthorizationFilter(), SecurityContextHolderFilter::class.java)
             .securityContext { ctx ->
                 ctx.securityContextRepository(HttpSessionSecurityContextRepository())
@@ -189,7 +213,7 @@ class AuthorizationServerConfig(
             .issuer(issuer)
             .authorizationEndpoint("/api/oauth2/authorize")
             .tokenEndpoint("/api/oauth2/token")
-            .jwkSetEndpoint("/api/oauth2/jwks")
+            .jwkSetEndpoint(JWK_SET_ENDPOINT)
             .tokenRevocationEndpoint("/api/oauth2/revoke")
             .tokenIntrospectionEndpoint("/api/oauth2/introspect")
             .oidcUserInfoEndpoint("/api/userinfo")
@@ -234,6 +258,16 @@ class AuthorizationServerConfig(
         }
 
     companion object {
+        /**
+         * Endpoints inside the authorization-server filter chain that must answer
+         * without authentication. Kept as a list rather than inlined so
+         * [AuthorizationServerConfigTest] can assert it still covers the JWK Set
+         * endpoint this server actually advertises in its discovery document.
+         */
+        const val JWK_SET_ENDPOINT = "/api/oauth2/jwks"
+
+        val PUBLIC_OAUTH2_ENDPOINTS = listOf(JWK_SET_ENDPOINT)
+
         private val DOWNSTREAM_CLIENT_PERMISSIONS: Map<String, ServicePermission> =
             mapOf(
                 "grafana" to ServicePermission.GRAFANA,
