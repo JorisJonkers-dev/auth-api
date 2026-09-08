@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.6.2...v0.7.0) (2026-09-08)
+
+
+### Features
+
+* **auth:** gate overleaf behind a service permission ([#54](https://github.com/JorisJonkers-dev/auth-api/issues/54)) ([33250c9](https://github.com/JorisJonkers-dev/auth-api/commit/33250c99103228129e4e56df8dcffae765632dc2))
+
 ## [0.6.2](https://github.com/JorisJonkers-dev/auth-api/compare/v0.6.1...v0.6.2) (2026-08-30)
 
 
