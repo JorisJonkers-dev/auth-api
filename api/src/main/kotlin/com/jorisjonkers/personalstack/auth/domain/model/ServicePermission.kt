@@ -60,12 +60,32 @@ enum class ServicePermission(
     // the case where someone already holds a valid authorization code.
     NOTES("notes"),
 
-    // Hermes Agent's web dashboard at hermes.jorisjonkers.dev. LAN-only
-    // (traefik-lan) and additionally gated by Hermes' own basic auth, but
-    // forward-auth still resolves the permission from the host, so the entry
-    // is required or every request is denied. Grant sparingly: the dashboard
-    // is a control plane for an agent that executes shell commands.
+    // Hermes Agent's web dashboard at hermes.jorisjonkers.dev. Its routes carry
+    // no forward-auth at all -- Hermes runs its own OIDC client, and a
+    // middleware in front would intercept /auth/callback -- so the grant is
+    // enforced at the authorization endpoint via DOWNSTREAM_CLIENT_PERMISSIONS,
+    // exactly as NOTES is. Grant sparingly: the dashboard is a control plane
+    // for an agent that executes shell commands.
+    //
+    // The previous comment here said the entry was "required or every request
+    // is denied". That is backwards: fromHost returns null for an unlisted
+    // subdomain and verify() skips the check entirely, so a missing entry
+    // ALLOWS every authenticated user rather than denying them. Which is
+    // exactly how overleaf shipped, and why it is being added below.
     HERMES("hermes"),
+
+    // Overleaf Community Edition at overleaf.jorisjonkers.dev. Unlike NOTES and
+    // HERMES, this one really is enforced here: Community Edition has no SSO of
+    // its own -- SAML, LDAP and OIDC are all Server Pro -- so the route carries
+    // the forward-auth middleware and this entry is the only per-user gate in
+    // front of it.
+    //
+    // Without this entry the host resolved to null and every authenticated user
+    // reached Overleaf, which is how it shipped in fleet-infra#216. Adding it
+    // revokes that access from everyone at once: existing users hold no
+    // SERVICE_OVERLEAF row, and only ROLE_ADMIN bypasses the check. Grant
+    // before anyone relies on it.
+    OVERLEAF("overleaf"),
     ;
 
     val subdomains: Set<String> = subdomains.toSet()
