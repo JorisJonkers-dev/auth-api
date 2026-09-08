@@ -38,6 +38,8 @@ class ServicePermissionTest {
         "notes.jorisjonkers.test, NOTES",
         "hermes.jorisjonkers.dev, HERMES",
         "hermes.jorisjonkers.test, HERMES",
+        "overleaf.jorisjonkers.dev, OVERLEAF",
+        "overleaf.jorisjonkers.test, OVERLEAF",
     )
     fun `fromHost resolves production and local dev hostnames`(
         host: String,
