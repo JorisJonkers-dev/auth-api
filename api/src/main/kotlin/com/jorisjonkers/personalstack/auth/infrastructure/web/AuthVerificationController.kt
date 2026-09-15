@@ -3,6 +3,7 @@ package com.jorisjonkers.personalstack.auth.infrastructure.web
 import com.jorisjonkers.personalstack.auth.domain.model.ServicePermission
 import com.jorisjonkers.personalstack.auth.infrastructure.security.AuthenticatedUser
 import com.jorisjonkers.personalstack.auth.infrastructure.security.TokenService
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpSession
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -30,10 +31,13 @@ class AuthVerificationController(
     @GetMapping("/verify")
     fun verify(
         @AuthenticationPrincipal user: AuthenticatedUser,
-        session: HttpSession,
+        request: HttpServletRequest,
         @RequestHeader(value = "X-Forwarded-Host", required = false) xForwardedHost: String?,
     ): ResponseEntity<Unit> {
-        touchSession(session)
+        // getSession(false): a bearer-token call carries no session cookie, and must
+        // not be given one -- getSession(true) would silently create and persist a
+        // throwaway Valkey-backed session on every CLI request.
+        request.getSession(false)?.let(::touchSession)
 
         val requiredPermission = ServicePermission.fromHost(xForwardedHost)
         if (requiredPermission != null && !isAuthorizedForService(user.roles, requiredPermission)) {

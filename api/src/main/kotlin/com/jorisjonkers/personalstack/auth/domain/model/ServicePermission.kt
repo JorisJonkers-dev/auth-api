@@ -86,6 +86,13 @@ enum class ServicePermission(
     // SERVICE_OVERLEAF row, and only ROLE_ADMIN bypasses the check. Grant
     // before anyone relies on it.
     OVERLEAF("overleaf"),
+
+    // memory-api.jorisjonkers.dev (Hindsight API) and memory-mcp.jorisjonkers.dev
+    // (Basic Memory MCP over SSE), both behind forward-auth. Headless CLI/agent
+    // access to these two hosts is via a service_tokens bearer credential scoped
+    // to exactly one of these permissions -- see ServiceTokenController.
+    MEMORY_API("memory-api"),
+    MEMORY_MCP("memory-mcp"),
     ;
 
     val subdomains: Set<String> = subdomains.toSet()
