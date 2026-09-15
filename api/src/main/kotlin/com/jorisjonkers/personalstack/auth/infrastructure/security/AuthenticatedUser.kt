@@ -11,6 +11,10 @@ data class AuthenticatedUser(
     private val username: String,
     val roles: List<String>,
     private val passwordHash: String = "",
+    // Set only by ServiceTokenAuthenticationFilter. Lets verify() require an explicit
+    // ServicePermission mapping for a bearer token even on a host where a full session
+    // still defaults to allow.
+    val viaServiceToken: Boolean = false,
 ) : UserDetails {
     fun userIdValue(): UserId = UserId(userId)
 
@@ -26,6 +30,7 @@ data class AuthenticatedUser(
             username: String,
             roles: List<String>,
             passwordHash: String = "",
-        ): AuthenticatedUser = AuthenticatedUser(userId.value, username, roles, passwordHash)
+            viaServiceToken: Boolean = false,
+        ): AuthenticatedUser = AuthenticatedUser(userId.value, username, roles, passwordHash, viaServiceToken)
     }
 }

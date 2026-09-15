@@ -80,6 +80,7 @@ class ServiceTokenAuthenticationFilterTest {
         val principal = authentication!!.principal as AuthenticatedUser
         assertThat(principal.roles).containsExactly("SERVICE_MEMORY_API")
         assertThat(principal.userId).isEqualTo(userId.value)
+        assertThat(principal.viaServiceToken).isTrue()
         verify { serviceTokenRepository.touchLastUsedAt(any(), any()) }
     }
 

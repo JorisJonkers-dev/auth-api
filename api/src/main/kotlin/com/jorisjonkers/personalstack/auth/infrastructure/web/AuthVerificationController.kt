@@ -22,6 +22,12 @@ import java.time.Instant
  * When [xForwardedHost] is present, the host is resolved to a [ServicePermission].
  * If a permission is required and the user's roles do not contain either ROLE_ADMIN
  * or the corresponding SERVICE_* claim, a 403 is returned.
+ *
+ * A host with no [ServicePermission] mapping is unenforced for a session -- fromHost
+ * returns null and every authenticated session passes, same as today. A service-token
+ * bearer caller (`user.viaServiceToken`) gets the opposite default: an unmapped host is
+ * denied, because that principal carries only a single narrow SERVICE_* claim and must
+ * never fall back to session-equivalent access on a route nobody scoped it for.
  */
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -40,7 +46,15 @@ class AuthVerificationController(
         request.getSession(false)?.let(::touchSession)
 
         val requiredPermission = ServicePermission.fromHost(xForwardedHost)
-        if (requiredPermission != null && !isAuthorizedForService(user.roles, requiredPermission)) {
+        if (requiredPermission == null) {
+            if (user.viaServiceToken) {
+                // A service token is scoped to exactly one host's ServicePermission. An
+                // unmapped host must never fall back to the session default of "allow" --
+                // that would let a token minted for one host authenticate on every host
+                // without its own mapping.
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+            }
+        } else if (!isAuthorizedForService(user.roles, requiredPermission)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
 

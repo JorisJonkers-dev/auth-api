@@ -139,6 +139,24 @@ class ServiceTokenIntegrationTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `minted token is rejected on a host with no ServicePermission mapping`() {
+        userRepository.saveServicePermissions(testUser.id, setOf(ServicePermission.MEMORY_API))
+        val token = mintToken(testUser.id, "MEMORY_API", "laptop")
+
+        // karakeep.jorisjonkers.dev carries forward-auth but has no ServicePermission entry.
+        // A session would pass here (unmapped host is unenforced for a session); a service
+        // token must not, or a token scoped to one host would authenticate on every
+        // unmapped forward-auth route in the estate.
+        mockMvc
+            .get("/api/v1/auth/verify") {
+                header("Authorization", "Bearer $token")
+                header("X-Forwarded-Host", "karakeep.jorisjonkers.dev")
+            }.andExpect {
+                status { isForbidden() }
+            }
+    }
+
+    @Test
     fun `a bearer call does not create a server session`() {
         userRepository.saveServicePermissions(testUser.id, setOf(ServicePermission.MEMORY_MCP))
         val token = mintToken(testUser.id, "MEMORY_MCP", "laptop")

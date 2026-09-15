@@ -25,11 +25,13 @@ class AuthVerificationControllerTest {
     private fun buildUserWithUuid(
         id: UUID = defaultUserId,
         roles: List<String> = listOf("ROLE_USER"),
+        viaServiceToken: Boolean = false,
     ): AuthenticatedUser =
         AuthenticatedUser.of(
             userId = UserId(id),
             username = "testuser",
             roles = roles,
+            viaServiceToken = viaServiceToken,
         )
 
     // Attaches an existing session, mimicking a browser call that already carries a
@@ -127,6 +129,24 @@ class AuthVerificationControllerTest {
         val response = controller.verify(user, requestWithSession(), "unknown-service.jorisjonkers.dev")
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+    }
+
+    @Test
+    fun `service-token caller is rejected on a host with no ServicePermission mapping`() {
+        val user = buildUserWithUuid(roles = listOf("SERVICE_MEMORY_API"), viaServiceToken = true)
+
+        val response = controller.verify(user, requestWithSession(), "unknown-service.jorisjonkers.dev")
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+    }
+
+    @Test
+    fun `service-token caller is rejected when no X-Forwarded-Host is present`() {
+        val user = buildUserWithUuid(roles = listOf("SERVICE_MEMORY_API"), viaServiceToken = true)
+
+        val response = controller.verify(user, requestWithSession(), null)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
     }
 
     @Test

@@ -55,6 +55,7 @@ class ServiceTokenAuthenticationFilter(
                 userId = token.userId,
                 username = user.username,
                 roles = listOf("SERVICE_${token.service.name}"),
+                viaServiceToken = true,
             )
         SecurityContextHolder.getContext().authentication =
             UsernamePasswordAuthenticationToken(principal, null, principal.authorities)
