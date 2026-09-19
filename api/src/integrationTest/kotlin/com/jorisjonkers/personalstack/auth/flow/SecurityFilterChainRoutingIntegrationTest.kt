@@ -157,6 +157,100 @@ class SecurityFilterChainRoutingIntegrationTest : IntegrationTestBase() {
     }
 
     @Nested
+    inner class StaleBearerTokenOnPublicEndpoints {
+        // A browser profile can hold an Authorization header from an old
+        // client build or an extension. The resource-server filter rejects an
+        // undecodable token before authorization runs, so a public endpoint
+        // answered 401 with an empty body and sign-in was impossible until the
+        // profile was cleared -- which is why it always worked in a private
+        // window.
+        private val garbageToken = "garbage.token.value"
+        private val wellFormedButUnsigned =
+            "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJzb21lb25lIiwiZXhwIjoxfQ.bm90LWEtc2lnbmF0dXJl"
+
+        @Test
+        fun `POST session-login with an undecodable bearer token is not rejected`() {
+            val result =
+                mockMvc
+                    .post("/api/v1/auth/session-login") {
+                        contentType = MediaType.APPLICATION_JSON
+                        header("Authorization", "Bearer $garbageToken")
+                        content = """{"username":"nonexistent","password":"test-password"}"""
+                    }.andReturn()
+            assertNotUnauthorized("/api/v1/auth/session-login", result.response.status)
+        }
+
+        @Test
+        fun `POST session-login with a wrongly signed bearer token is not rejected`() {
+            val result =
+                mockMvc
+                    .post("/api/v1/auth/session-login") {
+                        contentType = MediaType.APPLICATION_JSON
+                        header("Authorization", "Bearer $wellFormedButUnsigned")
+                        content = """{"username":"nonexistent","password":"test-password"}"""
+                    }.andReturn()
+            assertNotUnauthorized("/api/v1/auth/session-login", result.response.status)
+        }
+
+        @Test
+        fun `POST login with an undecodable bearer token is not rejected`() {
+            val result =
+                mockMvc
+                    .post("/api/v1/auth/login") {
+                        contentType = MediaType.APPLICATION_JSON
+                        header("Authorization", "Bearer $garbageToken")
+                        content = """{"username":"nonexistent","password":"test-password"}"""
+                    }.andReturn()
+            assertNotUnauthorized("/api/v1/auth/login", result.response.status)
+        }
+
+        @Test
+        fun `POST register with an undecodable bearer token is not rejected`() {
+            val result =
+                mockMvc
+                    .post("/api/v1/users/register") {
+                        contentType = MediaType.APPLICATION_JSON
+                        header("Authorization", "Bearer $garbageToken")
+                        content = "{}"
+                    }.andReturn()
+            assertNotUnauthorized("/api/v1/users/register", result.response.status)
+        }
+
+        @Test
+        fun `POST refresh with an undecodable bearer token is not rejected`() {
+            val result =
+                mockMvc
+                    .post("/api/v1/auth/refresh") {
+                        contentType = MediaType.APPLICATION_JSON
+                        header("Authorization", "Bearer $garbageToken")
+                        content = "{}"
+                    }.andReturn()
+            assertNotUnauthorized("/api/v1/auth/refresh", result.response.status)
+        }
+
+        @Test
+        fun `GET confirm-email with an undecodable bearer token is not rejected`() {
+            val result =
+                mockMvc
+                    .get("/api/v1/auth/confirm-email") {
+                        header("Authorization", "Bearer $garbageToken")
+                        param("token", "invalid-token")
+                    }.andReturn()
+            assertNotUnauthorized("/api/v1/auth/confirm-email", result.response.status)
+        }
+
+        @Test
+        fun `GET v1 health with an undecodable bearer token is not rejected`() {
+            val result =
+                mockMvc
+                    .get("/api/v1/health") {
+                        header("Authorization", "Bearer $garbageToken")
+                    }.andReturn()
+            assertNotUnauthorized("/api/v1/health", result.response.status)
+        }
+    }
+
+    @Nested
     inner class ProtectedEndpoints {
         @Test
         fun `GET admin users without auth returns 401`() {

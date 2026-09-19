@@ -27,6 +27,8 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.csrf.CsrfFilter
 import org.springframework.security.web.csrf.CsrfToken
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
+import org.springframework.security.web.util.matcher.OrRequestMatcher
 import org.springframework.security.web.util.matcher.RequestMatcher
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
@@ -34,8 +36,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import org.springframework.web.filter.OncePerRequestFilter
 import java.net.URLEncoder
 
-private const val FORWARD_AUTH_SECURITY_ORDER = 2
-private const val APPLICATION_SECURITY_ORDER = 3
+private const val PUBLIC_ENDPOINTS_SECURITY_ORDER = 2
+private const val FORWARD_AUTH_SECURITY_ORDER = 3
+private const val APPLICATION_SECURITY_ORDER = 4
 
 /**
  * Browser requests keep using the session cookie, while native clients may
@@ -51,6 +54,41 @@ class SecurityConfig(
     @param:Value("\${session.cookie.domain:}")
     private val cookieDomain: String,
 ) {
+    /**
+     * Public endpoints answer on their own chain, without the resource server.
+     *
+     * `permitAll` does not stop `BearerTokenAuthenticationFilter`: it runs
+     * before authorization, so any request carrying an `Authorization: Bearer`
+     * header it cannot decode is rejected with a bodyless 401 even on an
+     * endpoint that needs no authentication. A stale token left in a browser
+     * profile therefore made sign-in impossible — `POST /api/v1/auth/session-login`
+     * returned 401, the SPA could only show a generic "Login failed", and the
+     * same credentials worked in a private window because no token was there to
+     * send. Keeping these paths off the resource-server chain makes the header
+     * irrelevant where it carries no meaning.
+     *
+     * CSRF stays configured exactly as on the application chain so the
+     * `XSRF-TOKEN` cookie is still issued from here.
+     */
+    @Bean
+    @Order(PUBLIC_ENDPOINTS_SECURITY_ORDER)
+    fun publicEndpointsSecurityFilterChain(
+        http: HttpSecurity,
+        corsConfigurationSource: CorsConfigurationSource,
+    ): SecurityFilterChain {
+        http
+            .securityMatcher(
+                OrRequestMatcher(PUBLIC_ENDPOINTS.map { PathPatternRequestMatcher.pathPattern(it) }),
+            )
+            .cors { it.configurationSource(corsConfigurationSource) }
+            .securityContext { it.securityContextRepository(HttpSessionSecurityContextRepository()) }
+            .csrf { configureCsrf(it) }
+            .addFilterAfter(CsrfCookieFilter(), CsrfFilter::class.java)
+            .authorizeHttpRequests { it.anyRequest().permitAll() }
+            .exceptionHandling { it.authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)) }
+        return http.build()
+    }
+
     @Bean
     @Order(FORWARD_AUTH_SECURITY_ORDER)
     fun forwardAuthSecurityFilterChain(
