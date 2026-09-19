@@ -125,6 +125,7 @@ app:
     from: ${MAIL_FROM:auth@jorisjonkers.dev}
     from-name: ${MAIL_FROM_NAME:jorisjonkers.dev}
   confirmation-url: ${CONFIRMATION_URL:http://localhost:5174/confirm-email}
+  password-reset-url: ${PASSWORD_RESET_URL:http://localhost:5174/reset-password}
 
 auth:
   login-url: http://localhost:5174/login
