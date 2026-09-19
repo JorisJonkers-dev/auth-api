@@ -12,6 +12,7 @@ import com.jorisjonkers.personalstack.auth.infrastructure.web.dto.SessionLoginRe
 import com.jorisjonkers.personalstack.common.web.GlobalExceptionHandler
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -55,7 +56,7 @@ class SessionLoginControllerTest {
 
     @Test
     fun `session login with valid credentials returns success`() {
-        every { userRepository.findCredentialsByUsername("alice") } returns credentials
+        every { userRepository.findCredentialsByLoginIdentifier("alice") } returns credentials
         every { passwordEncoder.matches("securepass123", "hashed-password") } returns true
 
         val request = SessionLoginRequest(username = "alice", password = "securepass123")
@@ -77,7 +78,7 @@ class SessionLoginControllerTest {
 
     @Test
     fun `session login sets session timeout`() {
-        every { userRepository.findCredentialsByUsername("alice") } returns credentials
+        every { userRepository.findCredentialsByLoginIdentifier("alice") } returns credentials
         every { passwordEncoder.matches("securepass123", "hashed-password") } returns true
 
         val request = SessionLoginRequest(username = "alice", password = "securepass123")
@@ -93,9 +94,33 @@ class SessionLoginControllerTest {
         assertThat(session.maxInactiveInterval).isEqualTo(Duration.ofDays(30).seconds.toInt())
     }
 
+    // The controller hands whatever was typed to the repository unchanged: an
+    // email address, a differently cased username, both resolve there. What is
+    // pinned here is that no normalisation or username-only assumption is
+    // reintroduced in the controller.
+    @Test
+    fun `session login passes the typed identifier through unchanged`() {
+        every { userRepository.findCredentialsByLoginIdentifier("Alice@Example.com") } returns credentials
+        every { passwordEncoder.matches("securepass123", "hashed-password") } returns true
+
+        val request = SessionLoginRequest(username = "Alice@Example.com", password = "securepass123")
+
+        mockMvc
+            .post("/api/v1/auth/session-login") {
+                contentType = MediaType.APPLICATION_JSON
+                content = objectMapper.writeValueAsString(request)
+            }.andExpect {
+                status { isOk() }
+                jsonPath("$.success") { value(true) }
+                jsonPath("$.user.username") { value("alice") }
+            }
+
+        verify(exactly = 1) { userRepository.findCredentialsByLoginIdentifier("Alice@Example.com") }
+    }
+
     @Test
     fun `session login with invalid password returns 400`() {
-        every { userRepository.findCredentialsByUsername("alice") } returns credentials
+        every { userRepository.findCredentialsByLoginIdentifier("alice") } returns credentials
         every { passwordEncoder.matches("wrongpassword", "hashed-password") } returns false
 
         val request = SessionLoginRequest(username = "alice", password = "wrongpassword")
@@ -111,7 +136,7 @@ class SessionLoginControllerTest {
 
     @Test
     fun `session login with non-existent user returns 400`() {
-        every { userRepository.findCredentialsByUsername("unknown") } returns null
+        every { userRepository.findCredentialsByLoginIdentifier("unknown") } returns null
 
         val request = SessionLoginRequest(username = "unknown", password = "securepass123")
 
@@ -128,7 +153,7 @@ class SessionLoginControllerTest {
     fun `session login with TOTP enabled but no code returns totpRequired`() {
         val totpCredentials = credentials.copy(totpEnabled = true, totpSecret = "totp-secret")
 
-        every { userRepository.findCredentialsByUsername("alice") } returns totpCredentials
+        every { userRepository.findCredentialsByLoginIdentifier("alice") } returns totpCredentials
         every { passwordEncoder.matches("securepass123", "hashed-password") } returns true
 
         val request = SessionLoginRequest(username = "alice", password = "securepass123")
@@ -148,7 +173,7 @@ class SessionLoginControllerTest {
     fun `session login with valid TOTP code returns success`() {
         val totpCredentials = credentials.copy(totpEnabled = true, totpSecret = "totp-secret")
 
-        every { userRepository.findCredentialsByUsername("alice") } returns totpCredentials
+        every { userRepository.findCredentialsByLoginIdentifier("alice") } returns totpCredentials
         every { passwordEncoder.matches("securepass123", "hashed-password") } returns true
         every { totpService.verifyCode("totp-secret", "123456") } returns true
 
@@ -169,7 +194,7 @@ class SessionLoginControllerTest {
     fun `session login with invalid TOTP code returns 400`() {
         val totpCredentials = credentials.copy(totpEnabled = true, totpSecret = "totp-secret")
 
-        every { userRepository.findCredentialsByUsername("alice") } returns totpCredentials
+        every { userRepository.findCredentialsByLoginIdentifier("alice") } returns totpCredentials
         every { passwordEncoder.matches("securepass123", "hashed-password") } returns true
         every { totpService.verifyCode("totp-secret", "000000") } returns false
 
@@ -188,7 +213,7 @@ class SessionLoginControllerTest {
     fun `session login with unconfirmed email returns 400`() {
         val unconfirmedCredentials = credentials.copy(emailConfirmed = false)
 
-        every { userRepository.findCredentialsByUsername("alice") } returns unconfirmedCredentials
+        every { userRepository.findCredentialsByLoginIdentifier("alice") } returns unconfirmedCredentials
         every { passwordEncoder.matches("securepass123", "hashed-password") } returns true
 
         val request = SessionLoginRequest(username = "alice", password = "securepass123")
@@ -204,7 +229,7 @@ class SessionLoginControllerTest {
 
     @Test
     fun `session login response does not contain tokens`() {
-        every { userRepository.findCredentialsByUsername("alice") } returns credentials
+        every { userRepository.findCredentialsByLoginIdentifier("alice") } returns credentials
         every { passwordEncoder.matches("securepass123", "hashed-password") } returns true
 
         val request = SessionLoginRequest(username = "alice", password = "securepass123")
@@ -249,7 +274,7 @@ class SessionLoginControllerTest {
 
     @Test
     fun `session login with TOTP disabled ignores totpCode field`() {
-        every { userRepository.findCredentialsByUsername("alice") } returns credentials
+        every { userRepository.findCredentialsByLoginIdentifier("alice") } returns credentials
         every { passwordEncoder.matches("securepass123", "hashed-password") } returns true
 
         val request = SessionLoginRequest(username = "alice", password = "securepass123", totpCode = "123456")
@@ -268,7 +293,7 @@ class SessionLoginControllerTest {
     fun `session login with TOTP enabled but no secret throws error`() {
         val totpCredentials = credentials.copy(totpEnabled = true, totpSecret = null)
 
-        every { userRepository.findCredentialsByUsername("alice") } returns totpCredentials
+        every { userRepository.findCredentialsByLoginIdentifier("alice") } returns totpCredentials
         every { passwordEncoder.matches("securepass123", "hashed-password") } returns true
 
         val request = SessionLoginRequest(username = "alice", password = "securepass123", totpCode = "123456")

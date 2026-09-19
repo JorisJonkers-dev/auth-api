@@ -65,7 +65,7 @@ class SessionLoginController(
         password: String,
     ): UserCredentials {
         val credentials =
-            userRepository.findCredentialsByUsername(username)
+            userRepository.findCredentialsByLoginIdentifier(username)
                 ?: throw InvalidCredentialsException()
         verifyPassword(password, credentials.passwordHash)
         if (!credentials.emailConfirmed) throw EmailNotConfirmedException()

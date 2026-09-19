@@ -59,7 +59,7 @@ class LoginControllerTest {
 
     @Test
     fun `POST login returns tokens when TOTP is not enabled`() {
-        every { userRepository.findCredentialsByUsername("alice") } returns credentials
+        every { userRepository.findCredentialsByLoginIdentifier("alice") } returns credentials
         every { passwordEncoder.matches("securepass123", "hashed-password") } returns true
         every { tokenService.createAccessToken("alice", userId.value.toString(), listOf("ROLE_USER")) } returns
             "access-token"
@@ -83,7 +83,7 @@ class LoginControllerTest {
     fun `POST login returns TOTP challenge when TOTP is enabled`() {
         val totpCredentials = credentials.copy(totpEnabled = true, totpSecret = "totp-secret")
 
-        every { userRepository.findCredentialsByUsername("alice") } returns totpCredentials
+        every { userRepository.findCredentialsByLoginIdentifier("alice") } returns totpCredentials
         every { passwordEncoder.matches("securepass123", "hashed-password") } returns true
         every {
             tokenService.createTotpChallengeToken(
@@ -108,7 +108,7 @@ class LoginControllerTest {
 
     @Test
     fun `POST login returns 400 for invalid credentials`() {
-        every { userRepository.findCredentialsByUsername("unknown") } returns null
+        every { userRepository.findCredentialsByLoginIdentifier("unknown") } returns null
 
         val request = LoginRequest(username = "unknown", password = "securepass123")
 
@@ -123,7 +123,7 @@ class LoginControllerTest {
 
     @Test
     fun `POST login returns 400 for wrong password`() {
-        every { userRepository.findCredentialsByUsername("alice") } returns credentials
+        every { userRepository.findCredentialsByLoginIdentifier("alice") } returns credentials
         every { passwordEncoder.matches("wrongpassword", "hashed-password") } returns false
 
         val request = LoginRequest(username = "alice", password = "wrongpassword")
