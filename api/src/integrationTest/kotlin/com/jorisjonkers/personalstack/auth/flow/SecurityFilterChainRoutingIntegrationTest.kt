@@ -7,6 +7,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
@@ -281,6 +283,46 @@ class SecurityFilterChainRoutingIntegrationTest : IntegrationTestBase() {
                     .describedAs("OAuth2 authorize should NOT redirect to session-login")
                     .doesNotContain("session-login")
             }
+        }
+
+        // Outline's sign-in reaches the authorize endpoint through a redirect
+        // from notes.jorisjonkers.dev. The entry point only redirected requests
+        // whose Accept matched text/html, so one arriving with
+        // `Accept: application/json` -- a service worker re-issuing the
+        // navigation, an installed PWA shell -- was answered with a bodyless 401
+        // instead of the login page. The authorize endpoint is always a browser
+        // destination, so the Accept header must not decide this.
+        //
+        // The query string is written out rather than built with `param()`:
+        // MockMvc puts `param()` values in the query string *and* the parameter
+        // map, and the authorization endpoint rejects a duplicated
+        // `response_type` with `invalid_request`. A pre-encoded `redirect_uri`
+        // is double-encoded for the same reason, and `+` is not decoded as a
+        // space, so the single `openid` scope keeps the request valid.
+        @ParameterizedTest
+        @ValueSource(strings = ["application/json", "text/html", "*/*", "application/json, text/plain, */*"])
+        fun `GET authorize without a session redirects to login whatever the Accept header`(accept: String) {
+            val result =
+                mockMvc
+                    .get(
+                        "/api/oauth2/authorize?response_type=code&client_id=outline" +
+                            "&redirect_uri=https://notes.jorisjonkers.dev/auth/oidc.callback" +
+                            "&scope=openid&state=state-value",
+                    ) {
+                        header("Accept", accept)
+                    }.andReturn()
+
+            assertThat(result.response.status)
+                .describedAs("Accept: $accept must still reach the login page, not a bodyless 401")
+                .isEqualTo(302)
+            assertThat(result.response.getHeader("Location")).contains("/login")
+        }
+
+        @Test
+        fun `GET userinfo without a token still answers 401 rather than redirecting`() {
+            mockMvc
+                .get("/api/userinfo") { accept = MediaType.APPLICATION_JSON }
+                .andExpect { status { isUnauthorized() } }
         }
 
         @Test
