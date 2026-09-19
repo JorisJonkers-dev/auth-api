@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.7.0...v0.7.1) (2026-09-19)
+
+
+### Bug Fixes
+
+* **email:** make the password reset link configurable ([#56](https://github.com/JorisJonkers-dev/auth-api/issues/56)) ([b6d8372](https://github.com/JorisJonkers-dev/auth-api/commit/b6d83726315e8257b6f03765e504d86def7ae214))
+
 ## [0.7.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.6.2...v0.7.0) (2026-09-08)
 
 
