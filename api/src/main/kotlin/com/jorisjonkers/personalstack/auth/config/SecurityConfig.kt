@@ -186,22 +186,7 @@ class SecurityConfig(
                 "/api/v1/auth/verify",
             )
 
-        private val PUBLIC_ENDPOINTS =
-            arrayOf(
-                "/api/actuator/**",
-                "/api/v1/health",
-                "/api/v1/api-docs/**",
-                "/api/v1/swagger-ui/**",
-                "/api/v1/users/register",
-                "/api/v1/auth/login",
-                "/api/v1/auth/totp-challenge",
-                "/api/v1/auth/refresh",
-                "/api/v1/auth/confirm-email",
-                "/api/v1/auth/resend-confirmation",
-                "/api/v1/auth/session-login",
-                "/api/v1/auth/forgot-password",
-                "/api/v1/auth/reset-password",
-            )
+        private val PUBLIC_ENDPOINTS = PublicEndpoints.PATTERNS
     }
 
     private fun bearerTokenRequestMatcher(): RequestMatcher =
