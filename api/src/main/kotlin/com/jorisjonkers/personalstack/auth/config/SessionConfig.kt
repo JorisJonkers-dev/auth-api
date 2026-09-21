@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.session.Session
 import org.springframework.session.SessionRepository
 import org.springframework.session.config.SessionRepositoryCustomizer
-import org.springframework.session.data.redis.RedisIndexedSessionRepository
+import org.springframework.session.data.redis.RedisSessionRepository
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession
 import org.springframework.session.web.http.CookieHttpSessionIdResolver
 import org.springframework.session.web.http.CookieSerializer
@@ -47,8 +47,15 @@ class SessionConfig(
             setCookieSerializer(cookieSerializer())
         }
 
+    /**
+     * The generic type has to name the repository `@EnableRedisHttpSession`
+     * actually builds, which is `RedisSessionRepository`. A customizer typed for
+     * any other repository is never invoked -- no bean fails and nothing is
+     * logged, so the annotation's own 30-minute default silently stands. Switching
+     * to `@EnableRedisIndexedHttpSession` means changing this type with it.
+     */
     @Bean
-    fun redisSessionRepositoryCustomizer(): SessionRepositoryCustomizer<RedisIndexedSessionRepository> =
+    fun redisSessionRepositoryCustomizer(): SessionRepositoryCustomizer<RedisSessionRepository> =
         SessionRepositoryCustomizer { sessionRepository ->
             sessionRepository.setDefaultMaxInactiveInterval(sessionTimeout)
         }
