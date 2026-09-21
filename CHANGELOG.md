@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.8.0...v0.8.1) (2026-09-21)
+
+
+### Bug Fixes
+
+* **auth:** make cache eviction visible to the next read ([#65](https://github.com/JorisJonkers-dev/auth-api/issues/65)) ([7560254](https://github.com/JorisJonkers-dev/auth-api/commit/75602541e9c22106dc7575b3a8135ef13c07b220))
+
 ## [0.8.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.7.1...v0.8.0) (2026-09-21)
 
 
