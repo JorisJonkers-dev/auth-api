@@ -25,6 +25,11 @@ data class AuthenticatedUser(
     override fun getAuthorities(): Collection<GrantedAuthority> = roles.map { SimpleGrantedAuthority(it) }
 
     companion object {
+        // Live sessions in Valkey hold this class under JDK serialization, so the
+        // stream id is a released contract: adding a field without pinning it
+        // makes every existing session unreadable. Never change it.
+        private const val serialVersionUID: Long = -7778631777683703979L
+
         fun of(
             userId: UserId,
             username: String,
