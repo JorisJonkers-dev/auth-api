@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.9.0...v0.9.1) (2026-09-21)
+
+
+### Bug Fixes
+
+* **auth:** stop an unreadable session from locking sign-in out ([#70](https://github.com/JorisJonkers-dev/auth-api/issues/70)) ([ef7c52e](https://github.com/JorisJonkers-dev/auth-api/commit/ef7c52ea00b36122c6aa90af7d57131b76f76d45))
+
 ## [0.9.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.8.1...v0.9.0) (2026-09-21)
 
 
