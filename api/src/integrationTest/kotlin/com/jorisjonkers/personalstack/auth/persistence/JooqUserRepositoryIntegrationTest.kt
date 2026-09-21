@@ -23,6 +23,7 @@ import java.time.Instant
 import java.util.UUID
 
 private const val HASH = "\$2a\$10\$hashedPassword"
+private const val EVICTION_CYCLES = 200
 
 class JooqUserRepositoryIntegrationTest : IntegrationTestBase() {
     @Autowired
@@ -217,7 +218,6 @@ class JooqUserRepositoryIntegrationTest : IntegrationTestBase() {
 
         userRepository.update(user.copy(role = Role.ADMIN))
 
-        awaitByIdCacheEvicted(user.id)
         val refreshed = userRepository.findById(user.id)!!
         assertThat(refreshed.role).isEqualTo(Role.ADMIN)
     }
@@ -250,27 +250,41 @@ class JooqUserRepositoryIntegrationTest : IntegrationTestBase() {
 
         userRepository.saveServicePermissions(user.id, setOf(ServicePermission.VAULT))
 
-        awaitByIdCacheEvicted(user.id)
         val refreshed = userRepository.findById(user.id)!!
         assertThat(refreshed.servicePermissions).containsExactly(ServicePermission.VAULT)
     }
 
     /**
-     * The mutators evict the byId cache with a synchronous Redis DEL,
-     * but under CI load the DEL has occasionally not been observable by
-     * the immediately-following `findById` — which then re-caches the
-     * stale row for the full TTL and fails the assertion. Polling the
-     * cache entry directly (a GET that, unlike `findById`, never
-     * re-populates) absorbs that sub-second window; a genuinely missed
-     * eviction keeps the entry past the budget and still fails. See #442.
+     * Regression guard for #64. Spring Data Redis defaults to asynchronous
+     * writes on a reactive-capable connection factory, which Lettuce is: an
+     * `evict()` then returns before Valkey has applied the DEL and the very
+     * next `findById` can still be served the pre-update row, which it then
+     * re-caches for the full TTL. CacheConfig pins `immediateWrites()` to
+     * close that window. One cycle reproduced it in roughly 1 run in 25, so
+     * this asserts over a batch rather than once.
      */
-    private fun awaitByIdCacheEvicted(id: UserId) {
+    @Test
+    fun `eviction is visible to the immediately following read`() {
         val cache = cacheManager.getCache(CACHE_USERS_BY_ID)!!
-        val deadline = System.currentTimeMillis() + 5_000
-        while (cache.get(id.value) != null && System.currentTimeMillis() < deadline) {
-            Thread.sleep(50)
+        val stale = mutableListOf<String>()
+
+        repeat(EVICTION_CYCLES) { cycle ->
+            val user = buildUser(username = "evict-cycle-$cycle", email = "evict-cycle-$cycle@example.com")
+            userRepository.create(user, HASH)
+            userRepository.findById(user.id)
+
+            userRepository.update(user.copy(role = Role.ADMIN))
+            if (cache.get(user.id.value) != null) {
+                stale += "cycle $cycle: byId entry survived update()"
+            }
+
+            userRepository.deleteById(user.id)
+            if (userRepository.findById(user.id) != null) {
+                stale += "cycle $cycle: findById served a deleted user"
+            }
         }
-        assertThat(cache.get(id.value)).describedAs("byId cache entry for %s", id.value).isNull()
+
+        assertThat(stale).isEmpty()
     }
 
     @Test

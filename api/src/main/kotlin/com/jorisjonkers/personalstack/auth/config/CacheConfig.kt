@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.cache.RedisCacheConfiguration
 import org.springframework.data.redis.cache.RedisCacheManager
+import org.springframework.data.redis.cache.RedisCacheWriter
 import org.springframework.data.redis.connection.RedisConnectionFactory
 import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializationContext
@@ -34,11 +35,25 @@ class CacheConfig {
                 CACHE_USERS_BY_EMAIL to configFor(mapper, User::class.java, USER_CACHE_TTL),
             )
         return RedisCacheManager
-            .builder(connectionFactory)
+            .builder(immediateWriteCacheWriter(connectionFactory))
             .cacheDefaults(configFor(mapper, User::class.java, USER_CACHE_TTL))
             .withInitialCacheConfigurations(perCache)
             .build()
     }
+
+    /**
+     * Spring Data Redis picks asynchronous writes whenever the connection
+     * factory is reactive-capable, which Lettuce is. `put()` and `evict()`
+     * then fire the SET/DEL and return without awaiting the reply, so a
+     * blocking `get()` on the same thread can still be served the entry a
+     * just-issued `evict()` was meant to remove — measured here at ~4% of
+     * update-then-read cycles. Every mutator in
+     * [com.jorisjonkers.personalstack.auth.infrastructure.persistence.JooqUserRepository]
+     * depends on the opposite: that its per-key eviction is visible to the
+     * next read. `immediateWrites()` awaits the reply and restores that.
+     */
+    private fun immediateWriteCacheWriter(connectionFactory: RedisConnectionFactory): RedisCacheWriter =
+        RedisCacheWriter.create(connectionFactory) { it.immediateWrites() }
 
     /**
      * Typed per-cache config. Each cache carries its own
