@@ -29,6 +29,29 @@
               }
             },
             "description" : "OK"
+          },
+          "401" : {
+            "description" : "No authenticated session or token. Empty body."
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Authenticated but not permitted"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "security" : [ {
@@ -53,6 +76,49 @@
           "200" : {
             "content" : { },
             "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Request rejected on its own terms — see `type` for the specific code"
+          },
+          "401" : {
+            "description" : "No authenticated session or token. Empty body."
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Authenticated but not permitted"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "The referenced resource does not exist"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "security" : [ {
@@ -81,6 +147,49 @@
               }
             },
             "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Request rejected on its own terms — see `type` for the specific code"
+          },
+          "401" : {
+            "description" : "No authenticated session or token. Empty body."
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Authenticated but not permitted"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "The referenced resource does not exist"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "security" : [ {
@@ -121,6 +230,59 @@
               }
             },
             "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Request rejected on its own terms — see `type` for the specific code"
+          },
+          "401" : {
+            "description" : "No authenticated session or token. Empty body."
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Authenticated but not permitted"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "The referenced resource does not exist"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Validation failed — `errors` carries the offending fields"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "security" : [ {
@@ -161,6 +323,59 @@
               }
             },
             "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Request rejected on its own terms — see `type` for the specific code"
+          },
+          "401" : {
+            "description" : "No authenticated session or token. Empty body."
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Authenticated but not permitted"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "The referenced resource does not exist"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Validation failed — `errors` carries the offending fields"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "security" : [ {
@@ -185,6 +400,39 @@
         "responses" : {
           "204" : {
             "description" : "No Content"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Request rejected on its own terms — see `type` for the specific code"
+          },
+          "401" : {
+            "description" : "No authenticated session or token. Empty body."
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Validation failed — `errors` carries the offending fields"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "security" : [ {
@@ -217,6 +465,26 @@
               }
             },
             "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Request rejected on its own terms — see `type` for the specific code"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "tags" : [ "email-confirmation-controller" ]
@@ -248,6 +516,36 @@
               }
             },
             "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Request rejected on its own terms — see `type` for the specific code"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Validation failed — `errors` carries the offending fields"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "tags" : [ "password-controller" ]
@@ -276,6 +574,36 @@
               }
             },
             "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Request rejected on its own terms — see `type` for the specific code"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Validation failed — `errors` carries the offending fields"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "tags" : [ "login-controller" ]
@@ -287,6 +615,19 @@
         "responses" : {
           "200" : {
             "description" : "OK"
+          },
+          "401" : {
+            "description" : "No authenticated session or token. Empty body."
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "security" : [ {
@@ -300,6 +641,19 @@
           "200" : {
             "content" : { },
             "description" : "OK"
+          },
+          "401" : {
+            "description" : "No authenticated session or token. Empty body."
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "security" : [ {
@@ -321,6 +675,29 @@
               }
             },
             "description" : "OK"
+          },
+          "401" : {
+            "description" : "No authenticated session or token. Empty body."
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "The referenced resource does not exist"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "security" : [ {
@@ -352,6 +729,36 @@
               }
             },
             "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Request rejected on its own terms — see `type` for the specific code"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Validation failed — `errors` carries the offending fields"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "tags" : [ "login-controller" ]
@@ -383,6 +790,36 @@
               }
             },
             "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Request rejected on its own terms — see `type` for the specific code"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Validation failed — `errors` carries the offending fields"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "tags" : [ "email-confirmation-controller" ]
@@ -414,9 +851,169 @@
               }
             },
             "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Request rejected on its own terms — see `type` for the specific code"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Validation failed — `errors` carries the offending fields"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "tags" : [ "password-controller" ]
+      }
+    },
+    "/api/v1/auth/service-tokens" : {
+      "post" : {
+        "operationId" : "mint",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/MintServiceTokenRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MintServiceTokenResponse"
+                }
+              }
+            },
+            "description" : "Created"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Request rejected on its own terms — see `type` for the specific code"
+          },
+          "401" : {
+            "description" : "No authenticated session or token. Empty body."
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "The referenced resource does not exist"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Validation failed — `errors` carries the offending fields"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "tags" : [ "service-token-controller" ]
+      }
+    },
+    "/api/v1/auth/service-tokens/{id}" : {
+      "delete" : {
+        "operationId" : "revoke",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Request rejected on its own terms — see `type` for the specific code"
+          },
+          "401" : {
+            "description" : "No authenticated session or token. Empty body."
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "The referenced resource does not exist"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "tags" : [ "service-token-controller" ]
       }
     },
     "/api/v1/auth/session-login" : {
@@ -442,6 +1039,36 @@
               }
             },
             "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Request rejected on its own terms — see `type` for the specific code"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Validation failed — `errors` carries the offending fields"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "tags" : [ "session-login-controller" ]
@@ -470,6 +1097,36 @@
               }
             },
             "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Request rejected on its own terms — see `type` for the specific code"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Validation failed — `errors` carries the offending fields"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "tags" : [ "login-controller" ]
@@ -490,6 +1147,22 @@
           "200" : {
             "content" : { },
             "description" : "OK"
+          },
+          "401" : {
+            "description" : "No authenticated session or token. Empty body."
+          },
+          "403" : {
+            "description" : "Authenticated but not permitted"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "security" : [ {
@@ -514,6 +1187,16 @@
               }
             },
             "description" : "OK"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "tags" : [ "health-controller" ]
@@ -532,6 +1215,39 @@
               }
             },
             "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Request rejected on its own terms — see `type` for the specific code"
+          },
+          "401" : {
+            "description" : "No authenticated session or token. Empty body."
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "The referenced resource does not exist"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "security" : [ {
@@ -557,6 +1273,49 @@
           "200" : {
             "content" : { },
             "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Request rejected on its own terms — see `type` for the specific code"
+          },
+          "401" : {
+            "description" : "No authenticated session or token. Empty body."
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "The referenced resource does not exist"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Validation failed — `errors` carries the offending fields"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "security" : [ {
@@ -578,6 +1337,29 @@
               }
             },
             "description" : "OK"
+          },
+          "401" : {
+            "description" : "No authenticated session or token. Empty body."
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "The referenced resource does not exist"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "security" : [ {
@@ -607,6 +1389,49 @@
               }
             },
             "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Request rejected on its own terms — see `type` for the specific code"
+          },
+          "401" : {
+            "description" : "No authenticated session or token. Empty body."
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "The referenced resource does not exist"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Validation failed — `errors` carries the offending fields"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "security" : [ {
@@ -638,6 +1463,36 @@
               }
             },
             "description" : "Created"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Request rejected on its own terms — see `type` for the specific code"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Validation failed — `errors` carries the offending fields"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProblemDetail"
+                }
+              }
+            },
+            "description" : "Unhandled failure — correlate on `traceId`"
           }
         },
         "tags" : [ "user-registration-controller" ]
@@ -702,6 +1557,19 @@
         },
         "required" : [ "currentPassword", "newPassword" ]
       },
+      "FieldError" : {
+        "properties" : {
+          "field" : {
+            "type" : "string"
+          },
+          "message" : {
+            "type" : "string"
+          },
+          "rejectedValue" : {
+            "type" : "object"
+          }
+        }
+      },
       "ForgotPasswordRequest" : {
         "type" : "object",
         "properties" : {
@@ -751,6 +1619,100 @@
           }
         },
         "required" : [ "tokenType", "totpRequired" ]
+      },
+      "MintServiceTokenRequest" : {
+        "type" : "object",
+        "properties" : {
+          "label" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "service" : {
+            "type" : "string",
+            "minLength" : 1
+          }
+        },
+        "required" : [ "label", "service" ]
+      },
+      "MintServiceTokenResponse" : {
+        "type" : "object",
+        "properties" : {
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "label" : {
+            "type" : "string"
+          },
+          "service" : {
+            "type" : "string"
+          },
+          "token" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "createdAt", "id", "label", "service", "token" ]
+      },
+      "ProblemDetail" : {
+        "properties" : {
+          "column" : {
+            "type" : "string"
+          },
+          "constraint" : {
+            "type" : "string"
+          },
+          "detail" : {
+            "type" : "string"
+          },
+          "errors" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/FieldError"
+            }
+          },
+          "exception" : {
+            "type" : "string"
+          },
+          "instance" : {
+            "type" : "string",
+            "format" : "uri"
+          },
+          "kubernetesCode" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "kubernetesReason" : {
+            "type" : "string"
+          },
+          "referencedTable" : {
+            "type" : "string"
+          },
+          "retryAfterSeconds" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "runnerStatus" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "title" : {
+            "type" : "string"
+          },
+          "traceId" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string",
+            "format" : "uri"
+          }
+        }
       },
       "ProfileResponse" : {
         "type" : "object",
