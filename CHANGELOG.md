@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.8.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.7.1...v0.8.0) (2026-09-21)
+
+
+### Features
+
+* **auth:** per-host service tokens for headless forward-auth access ([#63](https://github.com/JorisJonkers-dev/auth-api/issues/63)) ([b811430](https://github.com/JorisJonkers-dev/auth-api/commit/b811430111462387decd566d8c93aec9c1e77470))
+* **auth:** sign in with a username or an email address ([#60](https://github.com/JorisJonkers-dev/auth-api/issues/60)) ([0ca1058](https://github.com/JorisJonkers-dev/auth-api/commit/0ca10580ca29bec9f691f6750a9824b67471c1e2))
+
+
+### Bug Fixes
+
+* **auth:** declare bearerAuth per operation, not for the whole document ([#61](https://github.com/JorisJonkers-dev/auth-api/issues/61)) ([fcb65ed](https://github.com/JorisJonkers-dev/auth-api/commit/fcb65edeb476edb944a83f65d8668b144ff2e937))
+* **auth:** keep a stale bearer token from blocking sign-in ([#57](https://github.com/JorisJonkers-dev/auth-api/issues/57)) ([16544bb](https://github.com/JorisJonkers-dev/auth-api/commit/16544bbaf27dc4378cd5224f3926c72826fd0357))
+* **auth:** redirect to login from authorize whatever the Accept header ([#59](https://github.com/JorisJonkers-dev/auth-api/issues/59)) ([6d1e670](https://github.com/JorisJonkers-dev/auth-api/commit/6d1e67019f24f57983536cb28f186932940c9950))
+
 ## [0.7.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.7.0...v0.7.1) (2026-09-19)
 
 
