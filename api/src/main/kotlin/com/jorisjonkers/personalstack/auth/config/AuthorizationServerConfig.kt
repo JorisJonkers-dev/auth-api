@@ -143,6 +143,17 @@ class AuthorizationServerConfig(
             .securityContext { ctx ->
                 ctx.securityContextRepository(HttpSessionSecurityContextRepository())
             }.exceptionHandling { exceptions ->
+                // The authorize endpoint is only ever reached by a browser, so the
+                // login redirect must not depend on the Accept header. It used to,
+                // and a request that arrived with `Accept: application/json` -- a
+                // service worker re-issuing the navigation, an installed PWA shell --
+                // was answered with a bodyless 401 instead of the login page. Outline
+                // sign-in on mobile hit exactly that: /auth/oidc redirected here and
+                // the browser showed a bare 401.
+                exceptions.defaultAuthenticationEntryPointFor(
+                    LoginUrlAuthenticationEntryPoint(loginUrl),
+                    PathPatternRequestMatcher.pathPattern(OAUTH2_AUTHORIZE_PATH),
+                )
                 exceptions.defaultAuthenticationEntryPointFor(
                     LoginUrlAuthenticationEntryPoint(loginUrl),
                     MediaTypeRequestMatcher(MediaType.TEXT_HTML),
