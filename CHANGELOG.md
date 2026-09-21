@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.10.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.9.1...v0.10.0) (2026-09-21)
+
+
+### Features
+
+* **ci:** tell fleet-infra when an image is published ([#73](https://github.com/JorisJonkers-dev/auth-api/issues/73)) ([634a05f](https://github.com/JorisJonkers-dev/auth-api/commit/634a05fba14052ecc9a9a390066fc178f0789951))
+
+
+### Bug Fixes
+
+* **auth:** apply the configured session timeout ([#72](https://github.com/JorisJonkers-dev/auth-api/issues/72)) ([de97952](https://github.com/JorisJonkers-dev/auth-api/commit/de97952636adb2a22241f3bf1c40862f396b9f0c))
+
 ## [0.9.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.9.0...v0.9.1) (2026-09-21)
 
 
