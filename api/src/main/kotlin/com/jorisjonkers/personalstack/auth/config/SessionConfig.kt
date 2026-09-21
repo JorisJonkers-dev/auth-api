@@ -1,8 +1,11 @@
 package com.jorisjonkers.personalstack.auth.config
 
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.beans.factory.config.BeanPostProcessor
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.session.Session
+import org.springframework.session.SessionRepository
 import org.springframework.session.config.SessionRepositoryCustomizer
 import org.springframework.session.data.redis.RedisIndexedSessionRepository
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession
@@ -49,4 +52,30 @@ class SessionConfig(
         SessionRepositoryCustomizer { sessionRepository ->
             sessionRepository.setDefaultMaxInactiveInterval(sessionTimeout)
         }
+
+    companion object {
+        /**
+         * Spring Session builds the repository itself, so a BeanPostProcessor is
+         * the only seam available to wrap it. Static, so wrapping the repository
+         * does not force this configuration class to initialise early.
+         */
+        @Bean
+        @JvmStatic
+        fun sessionRepositoryTolerance(): BeanPostProcessor =
+            object : BeanPostProcessor {
+                override fun postProcessAfterInitialization(
+                    bean: Any,
+                    beanName: String,
+                ): Any =
+                    when (bean) {
+                        is UnreadableSessionTolerantRepository<*> -> bean
+                        is SessionRepository<*> -> {
+                            @Suppress("UNCHECKED_CAST")
+                            UnreadableSessionTolerantRepository(bean as SessionRepository<Session>)
+                        }
+
+                        else -> bean
+                    }
+            }
+    }
 }
