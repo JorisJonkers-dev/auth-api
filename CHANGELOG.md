@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.8.1...v0.9.0) (2026-09-21)
+
+
+### Features
+
+* **auth:** declare the error contract as problem+json ([#68](https://github.com/JorisJonkers-dev/auth-api/issues/68)) ([f3c44df](https://github.com/JorisJonkers-dev/auth-api/commit/f3c44dfa72eebc16c4e348ab3aebcf3bbc3de658))
+
 ## [0.8.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.8.0...v0.8.1) (2026-09-21)
 
 
