@@ -117,3 +117,68 @@ jobs:
       packages: write
       id-token: write
       attestations: write
+
+  # -- 4. Tell fleet-infra the image exists ---------------------------------
+  #
+  # auto-bump-first-party-images.yml brings the pins in cluster/flux up to the
+  # newest published tag. It accepts this dispatch precisely so a service does
+  # not have to wait for its `*/30` cron -- which this org has measured
+  # delivering two to four runs per repo per day, hours late. v0.9.1 fixed a
+  # total sign-in outage and then sat unpinned until the bump was triggered by
+  # hand.
+  #
+  # Deliberately a separate job rather than a step on the publish: the image and
+  # the deploy artifact are already published by the time this runs, and a
+  # notification failing must not mark that publish failed. If this job fails
+  # the cron still picks the release up, so the worst case is the behaviour we
+  # have today, reported loudly instead of silently.
+  #
+  # Nothing here bypasses a gate. The bump opens a pull request whose required
+  # checks still have to pass, and publish-deploy-branch still gates on the
+  # deploy-production environment.
+  notify-fleet-infra:
+    name: Notify fleet-infra
+    needs: [publish-deploy-artifact]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions: {}
+    steps:
+      - name: mint-app-token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          # GITHUB_TOKEN is scoped to this repository and cannot dispatch to
+          # another one, so the token has to be minted for fleet-infra.
+          owner: JorisJonkers-dev
+          repositories: fleet-infra
+
+      - name: assert-token-minted
+        # Fail loudly if the App token is missing -- never fall back to
+        # GITHUB_TOKEN, matching release.yml.
+        env:
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          if [ -z "$APP_TOKEN" ]; then
+            echo "E_APP_TOKEN_MISSING: Release App token was not minted." >&2
+            echo "Secrets RELEASE_APP_ID and RELEASE_APP_PRIVATE_KEY must be configured," >&2
+            echo "and the App must be installed on JorisJonkers-dev/fleet-infra." >&2
+            echo "GITHUB_TOKEN fallback is intentionally forbidden." >&2
+            exit 1
+          fi
+          echo "App token minted successfully (token prefix: ${APP_TOKEN:0:4}...)"
+
+      - name: dispatch-image-published
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+          gh api \
+            --method POST \
+            repos/JorisJonkers-dev/fleet-infra/dispatches \
+            -f event_type=image-published \
+            -f "client_payload[service]=auth-api" \
+            -f "client_payload[version]=$TAG"
+          echo "Dispatched image-published to fleet-infra for auth-api $TAG"
