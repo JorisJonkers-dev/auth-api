@@ -12,9 +12,6 @@
     "url" : "http://localhost:8081",
     "description" : "Local development"
   } ],
-  "security" : [ {
-    "bearerAuth" : [ ]
-  } ],
   "paths" : {
     "/api/v1/admin/users" : {
       "get" : {
@@ -34,6 +31,9 @@
             "description" : "OK"
           }
         },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
         "tags" : [ "admin-controller" ]
       }
     },
@@ -55,6 +55,9 @@
             "description" : "OK"
           }
         },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
         "tags" : [ "admin-controller" ]
       },
       "get" : {
@@ -80,6 +83,9 @@
             "description" : "OK"
           }
         },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
         "tags" : [ "admin-controller" ]
       }
     },
@@ -117,6 +123,9 @@
             "description" : "OK"
           }
         },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
         "tags" : [ "admin-controller" ]
       }
     },
@@ -154,6 +163,9 @@
             "description" : "OK"
           }
         },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
         "tags" : [ "admin-controller" ]
       }
     },
@@ -175,6 +187,9 @@
             "description" : "No Content"
           }
         },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
         "tags" : [ "password-controller" ]
       }
     },
@@ -274,6 +289,9 @@
             "description" : "OK"
           }
         },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
         "tags" : [ "logout-controller" ]
       },
       "post" : {
@@ -284,6 +302,9 @@
             "description" : "OK"
           }
         },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
         "tags" : [ "logout-controller" ]
       }
     },
@@ -302,6 +323,9 @@
             "description" : "OK"
           }
         },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
         "tags" : [ "me-controller" ]
       }
     },
@@ -468,6 +492,9 @@
             "description" : "OK"
           }
         },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
         "tags" : [ "auth-verification-controller" ]
       }
     },
@@ -507,6 +534,9 @@
             "description" : "OK"
           }
         },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
         "tags" : [ "totp-controller" ]
       }
     },
@@ -529,6 +559,9 @@
             "description" : "OK"
           }
         },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
         "tags" : [ "totp-controller" ]
       }
     },
@@ -547,6 +580,9 @@
             "description" : "OK"
           }
         },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
         "tags" : [ "profile-controller" ]
       },
       "patch" : {
@@ -573,6 +609,9 @@
             "description" : "OK"
           }
         },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
         "tags" : [ "profile-controller" ]
       }
     },

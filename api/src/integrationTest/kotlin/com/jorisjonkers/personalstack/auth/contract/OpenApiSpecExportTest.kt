@@ -120,12 +120,66 @@ class OpenApiSpecExportTest {
             .andExpect(jsonPath("$['paths']['/api/v1/users/register']").exists())
     }
 
+    // A document-level `security` applies to every operation, so generated
+    // clients attached a bearer token to sign-in and registration. The
+    // declaration now sits on the operations that actually take one.
+    @Test
+    fun `the document declares no blanket security requirement`() {
+        mockMvc
+            .perform(get("/api/v1/api-docs"))
+            .andExpect(jsonPath("$['security']").doesNotExist())
+    }
+
+    @Test
+    fun `public endpoints declare no security requirement`() {
+        val response = mockMvc.perform(get("/api/v1/api-docs"))
+        for (operation in PUBLIC_OPERATIONS) {
+            response.andExpect(jsonPath("$['paths']['${operation.first}']['${operation.second}']['security']").doesNotExist())
+        }
+    }
+
+    @Test
+    fun `protected endpoints declare bearerAuth`() {
+        val response = mockMvc.perform(get("/api/v1/api-docs"))
+        for (operation in PROTECTED_OPERATIONS) {
+            response.andExpect(
+                jsonPath("$['paths']['${operation.first}']['${operation.second}']['security'][0]['bearerAuth']").exists(),
+            )
+        }
+    }
+
     private fun resolveOpenApiSpecPath(): Path {
         val override = System.getProperty("openapi.spec.output")
         if (override != null) {
             return Paths.get(override)
         }
         return Paths.get(System.getProperty("user.dir")).resolve("client-spec/openapi/auth-api.json")
+    }
+
+    companion object {
+        private val PUBLIC_OPERATIONS =
+            listOf(
+                "/api/v1/auth/session-login" to "post",
+                "/api/v1/auth/login" to "post",
+                "/api/v1/auth/totp-challenge" to "post",
+                "/api/v1/auth/refresh" to "post",
+                "/api/v1/auth/confirm-email" to "get",
+                "/api/v1/auth/resend-confirmation" to "post",
+                "/api/v1/auth/forgot-password" to "post",
+                "/api/v1/auth/reset-password" to "post",
+                "/api/v1/users/register" to "post",
+                "/api/v1/health" to "get",
+            )
+
+        private val PROTECTED_OPERATIONS =
+            listOf(
+                "/api/v1/auth/me" to "get",
+                "/api/v1/auth/verify" to "get",
+                "/api/v1/users/me" to "patch",
+                "/api/v1/admin/users" to "get",
+                "/api/v1/totp/enroll" to "post",
+                "/api/v1/auth/change-password" to "post",
+            )
     }
 
     @SpringBootConfiguration
