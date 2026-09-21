@@ -146,7 +146,10 @@ class JooqUserRepository(
     // under Lettuce — a user changing password and immediately re-logging
     // in would read stale credentials. Each mutator now resolves the user
     // first (a @Cacheable hit ~free) so we know username/email and can
-    // issue per-key evict() calls, which are synchronous Redis DELs.
+    // issue per-key evict() calls. Those are only synchronous DELs because
+    // CacheConfig pins the cache writer to immediateWrites(); on the Spring
+    // Data Redis default an evict() returns before Valkey applies it and the
+    // next read still sees the old row (#64).
     override fun update(user: User): User {
         val now = user.updatedAt.atOffset(ZoneOffset.UTC).toLocalDateTime()
         dsl
