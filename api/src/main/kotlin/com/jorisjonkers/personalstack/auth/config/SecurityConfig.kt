@@ -79,8 +79,7 @@ class SecurityConfig(
         http
             .securityMatcher(
                 OrRequestMatcher(PUBLIC_ENDPOINTS.map { PathPatternRequestMatcher.pathPattern(it) }),
-            )
-            .cors { it.configurationSource(corsConfigurationSource) }
+            ).cors { it.configurationSource(corsConfigurationSource) }
             .securityContext { it.securityContextRepository(HttpSessionSecurityContextRepository()) }
             .csrf { configureCsrf(it) }
             .addFilterAfter(CsrfCookieFilter(), CsrfFilter::class.java)
