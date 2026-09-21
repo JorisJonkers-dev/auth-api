@@ -91,6 +91,66 @@ class SessionManagementIntegrationTest : IntegrationTestBase() {
             }.andExpect { status { isOk() } }
     }
 
+    // A phone's autofill puts the saved email address in the sign-in field, and
+    // the identifier used to have to be the username, exactly. Twelve
+    // consecutive 400s in production came from that.
+    @Test
+    fun `sign-in accepts the email address instead of the username`() {
+        val username = uniqueUsername()
+        val password = "securepass123"
+        registerAndConfirmUser(username, password)
+
+        val result = sessionLogin("$username@example.com", password)
+
+        assert(result.response.status == 200) { "Expected 200 but got ${result.response.status}" }
+        assert(extractSession(result) != null) { "Expected HttpSession to be created" }
+    }
+
+    @Test
+    fun `sign-in ignores the case of the username and of the email address`() {
+        val username = uniqueUsername()
+        val password = "securepass123"
+        registerAndConfirmUser(username, password)
+
+        for (identifier in listOf(username.uppercase(), "$username@EXAMPLE.com")) {
+            val result = sessionLogin(identifier, password)
+            assert(result.response.status == 200) {
+                "Expected 200 for identifier $identifier but got ${result.response.status}"
+            }
+        }
+    }
+
+    @Test
+    fun `sign-in with the right email and a wrong password still fails`() {
+        val username = uniqueUsername()
+        registerAndConfirmUser(username, "securepass123")
+
+        val result = sessionLogin("$username@example.com", "not-the-password")
+
+        assert(result.response.status == 400) { "Expected 400 but got ${result.response.status}" }
+    }
+
+    @Test
+    fun `registering a username that differs only in case is rejected`() {
+        val username = uniqueUsername()
+        registerAndConfirmUser(username, "securepass123")
+
+        mockMvc
+            .post("/api/v1/users/register") {
+                contentType = MediaType.APPLICATION_JSON
+                content =
+                    """
+                    {
+                      "username": "${username.uppercase()}",
+                      "email": "other_$username@example.com",
+                      "firstName": "Test",
+                      "lastName": "User",
+                      "password": "securepass123"
+                    }
+                    """.trimIndent()
+            }.andExpect { status { isBadRequest() } }
+    }
+
     private fun registerAndConfirmUser(
         username: String,
         password: String,

@@ -108,7 +108,7 @@ class RateLimitingTest {
 
     @Test
     fun `login endpoint handles concurrent requests`() {
-        every { userRepository.findCredentialsByUsername("alice") } returns credentials
+        every { userRepository.findCredentialsByLoginIdentifier("alice") } returns credentials
         every { passwordEncoder.matches("securepass123", "hashed-password") } returns true
         every { tokenService.createAccessToken(any(), any(), any()) } returns "access-token"
         every { tokenService.createRefreshToken(any()) } returns "refresh-token"
@@ -121,7 +121,7 @@ class RateLimitingTest {
 
     @Test
     fun `session-login endpoint handles concurrent requests`() {
-        every { userRepository.findCredentialsByUsername("alice") } returns credentials
+        every { userRepository.findCredentialsByLoginIdentifier("alice") } returns credentials
         every { passwordEncoder.matches("securepass123", "hashed-password") } returns true
 
         val body = objectMapper.writeValueAsString(mapOf("username" to "alice", "password" to "securepass123"))

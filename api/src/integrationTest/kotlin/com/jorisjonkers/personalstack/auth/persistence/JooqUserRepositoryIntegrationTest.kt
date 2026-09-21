@@ -22,6 +22,8 @@ import org.springframework.cache.CacheManager
 import java.time.Instant
 import java.util.UUID
 
+private const val HASH = "\$2a\$10\$hashedPassword"
+
 class JooqUserRepositoryIntegrationTest : IntegrationTestBase() {
     @Autowired
     private lateinit var userRepository: UserRepository
@@ -370,6 +372,68 @@ class JooqUserRepositoryIntegrationTest : IntegrationTestBase() {
         userRepository.deleteById(user.id)
 
         assertThat(userRepository.findById(user.id)).isNull()
+    }
+
+    @Test
+    fun `findCredentialsByLoginIdentifier resolves a username in any case`() {
+        userRepository.create(buildUser(username = "joris", email = "joris@example.com"), HASH)
+
+        for (typed in listOf("joris", "Joris", "JORIS")) {
+            val found = userRepository.findCredentialsByLoginIdentifier(typed)
+            assertThat(found).describedAs("typed=%s", typed).isNotNull
+            assertThat(found!!.username).isEqualTo("joris")
+        }
+    }
+
+    @Test
+    fun `findCredentialsByLoginIdentifier resolves an email address in any case`() {
+        userRepository.create(buildUser(username = "joris", email = "joris@example.com"), HASH)
+
+        for (typed in listOf("joris@example.com", "Joris@Example.com")) {
+            val found = userRepository.findCredentialsByLoginIdentifier(typed)
+            assertThat(found).describedAs("typed=%s", typed).isNotNull
+            assertThat(found!!.username).isEqualTo("joris")
+        }
+    }
+
+    @Test
+    fun `findCredentialsByLoginIdentifier returns null for an unknown identifier`() {
+        userRepository.create(buildUser(username = "joris", email = "joris@example.com"), HASH)
+
+        assertThat(userRepository.findCredentialsByLoginIdentifier("nobody")).isNull()
+        assertThat(userRepository.findCredentialsByLoginIdentifier("nobody@example.com")).isNull()
+    }
+
+    // Rows that predate the case-insensitive existence checks can still collide.
+    // The row returned must not depend on Postgres' scan order.
+    @Test
+    fun `findCredentialsByLoginIdentifier prefers an exact username over a case variant`() {
+        userRepository.create(buildUser(username = "Joris", email = "upper@example.com"), HASH)
+        userRepository.create(buildUser(username = "joris", email = "lower@example.com"), HASH)
+
+        val found = userRepository.findCredentialsByLoginIdentifier("joris")
+
+        assertThat(found?.username).isEqualTo("joris")
+        assertThat(userRepository.findCredentialsByLoginIdentifier("Joris")?.username).isEqualTo("Joris")
+    }
+
+    @Test
+    fun `findCredentialsByLoginIdentifier prefers a username over another account's email`() {
+        userRepository.create(buildUser(username = "collision", email = "someone@example.com"), HASH)
+        userRepository.create(buildUser(username = "other", email = "collision"), HASH)
+
+        val found = userRepository.findCredentialsByLoginIdentifier("collision")
+
+        assertThat(found?.username).isEqualTo("collision")
+    }
+
+    @Test
+    fun `existsByUsername and existsByEmail ignore case`() {
+        userRepository.create(buildUser(username = "joris", email = "joris@example.com"), HASH)
+
+        assertThat(userRepository.existsByUsername("JORIS")).isTrue()
+        assertThat(userRepository.existsByEmail("Joris@Example.COM")).isTrue()
+        assertThat(userRepository.existsByUsername("someone-else")).isFalse()
     }
 
     private fun buildUser(

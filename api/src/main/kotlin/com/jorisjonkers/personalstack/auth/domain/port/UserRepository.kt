@@ -18,6 +18,13 @@ interface UserRepository {
 
     fun findCredentialsByUsername(username: String): UserCredentials?
 
+    /**
+     * Resolves the credentials a human typed into a sign-in form: a username or
+     * an email address, in any case. Exactly one row is returned even where
+     * rows collide, and [JooqUserRepository] fixes which one.
+     */
+    fun findCredentialsByLoginIdentifier(identifier: String): UserCredentials?
+
     fun findAll(): List<User>
 
     fun create(

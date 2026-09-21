@@ -23,6 +23,11 @@ import org.springframework.stereotype.Repository
 import java.time.ZoneOffset
 import java.util.UUID
 
+// Precedence used when a login identifier matches more than one row.
+private const val EXACT_USERNAME_MATCH = 0
+private const val CASE_INSENSITIVE_USERNAME_MATCH = 1
+private const val EMAIL_MATCH = 2
+
 @Repository
 // 13 cohesive data-access methods (find/create/update/delete + cache eviction helpers).
 // Interface-split was attempted but repeatedly broke Spring cache proxy wiring; a
@@ -69,6 +74,40 @@ class JooqUserRepository(
             .where(APP_USER.USERNAME.eq(username))
             .fetchOne()
             ?.let { it.toUserCredentials(it.extractPermissions()) }
+
+    // No LOWER() index backs this lookup: the jOOQ codegen plugin parses every
+    // migration to simulate the schema, and `CREATE INDEX ... (LOWER(col))` fails
+    // that parse, breaking the build for the whole module. app_user holds a
+    // handful of rows, so the sequential scan costs nothing; revisit with a
+    // generated column if that ever stops being true.
+    //
+    // A sign-in form takes one identifier and the user decides what it means, so
+    // username and email are both accepted and case is ignored. Rows can
+    // collide -- a case variant, or a username equal to another account's email
+    // -- so the match is ordered and capped at one: an exact username first,
+    // then a case-insensitive username, then an email, oldest row breaking a
+    // remaining tie. Without the ordering the answer would be whatever Postgres
+    // returned first, which can change between runs for the same data.
+    override fun findCredentialsByLoginIdentifier(identifier: String): UserCredentials? {
+        val normalized = identifier.lowercase()
+        val precedence =
+            DSL
+                .`when`(APP_USER.USERNAME.eq(identifier), EXACT_USERNAME_MATCH)
+                .`when`(DSL.lower(APP_USER.USERNAME).eq(normalized), CASE_INSENSITIVE_USERNAME_MATCH)
+                .otherwise(EMAIL_MATCH)
+        return dsl
+            .select(userFields)
+            .from(APP_USER)
+            .where(
+                DSL
+                    .lower(APP_USER.USERNAME)
+                    .eq(normalized)
+                    .or(DSL.lower(APP_USER.EMAIL).eq(normalized)),
+            ).orderBy(precedence, APP_USER.CREATED_AT)
+            .limit(1)
+            .fetchOne()
+            ?.let { it.toUserCredentials(it.extractPermissions()) }
+    }
 
     override fun findAll(): List<User> =
         dsl
@@ -167,14 +206,19 @@ class JooqUserRepository(
         evictAllCachesFor(userId)
     }
 
+    // Case-insensitive, because login resolves an identifier case-insensitively:
+    // letting "Joris" register alongside "joris" would make one of them
+    // unreachable by whichever row lost the precedence order above.
     override fun existsByUsername(username: String): Boolean =
-        dsl.fetchExists(dsl.selectFrom(APP_USER).where(APP_USER.USERNAME.eq(username)))
+        dsl.fetchExists(
+            dsl.selectFrom(APP_USER).where(DSL.lower(APP_USER.USERNAME).eq(username.lowercase())),
+        )
 
     override fun existsByEmail(email: String): Boolean =
         dsl.fetchExists(
             dsl
                 .selectFrom(APP_USER)
-                .where(APP_USER.EMAIL.eq(email)),
+                .where(DSL.lower(APP_USER.EMAIL).eq(email.lowercase())),
         )
 
     override fun updatePassword(
