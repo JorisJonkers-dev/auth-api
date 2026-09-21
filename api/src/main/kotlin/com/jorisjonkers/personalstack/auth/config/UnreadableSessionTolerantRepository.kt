@@ -1,5 +1,6 @@
 package com.jorisjonkers.personalstack.auth.config
 
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.data.redis.serializer.SerializationException
 import org.springframework.session.Session
@@ -46,6 +47,6 @@ class UnreadableSessionTolerantRepository<S : Session>(
     }
 
     private companion object {
-        val log = LoggerFactory.getLogger(UnreadableSessionTolerantRepository::class.java)
+        val log: Logger = LoggerFactory.getLogger(UnreadableSessionTolerantRepository::class.java)
     }
 }
