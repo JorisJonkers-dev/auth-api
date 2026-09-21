@@ -28,7 +28,8 @@ abstract class IntegrationTestBase {
     fun resetSharedState() {
         dsl.execute(
             "TRUNCATE TABLE app_user, email_confirmation_token, password_reset_token, " +
-                "user_service_permissions, oauth2_authorization, oauth2_authorization_consent " +
+                "user_service_permissions, oauth2_authorization, oauth2_authorization_consent, " +
+                "service_tokens " +
                 "RESTART IDENTITY CASCADE",
         )
         cacheManager.cacheNames.forEach { cacheManager.getCache(it)?.clear() }

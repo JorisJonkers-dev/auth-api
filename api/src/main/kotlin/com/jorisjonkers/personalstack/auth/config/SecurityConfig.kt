@@ -1,5 +1,8 @@
 package com.jorisjonkers.personalstack.auth.config
 
+import com.jorisjonkers.personalstack.auth.domain.port.ServiceTokenRepository
+import com.jorisjonkers.personalstack.auth.domain.port.UserRepository
+import com.jorisjonkers.personalstack.auth.infrastructure.security.ServiceTokenAuthenticationFilter
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Value
@@ -23,6 +26,7 @@ import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.HttpStatusEntryPoint
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository
+import org.springframework.security.web.context.SecurityContextHolderFilter
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.csrf.CsrfFilter
 import org.springframework.security.web.csrf.CsrfToken
@@ -56,13 +60,20 @@ class SecurityConfig(
     fun forwardAuthSecurityFilterChain(
         http: HttpSecurity,
         corsConfigurationSource: CorsConfigurationSource,
+        serviceTokenRepository: ServiceTokenRepository,
+        userRepository: UserRepository,
     ): SecurityFilterChain {
         http
             .securityMatcher("/api/v1/auth/verify")
             .cors { it.configurationSource(corsConfigurationSource) }
             .csrf { it.disable() }
             .securityContext { it.securityContextRepository(HttpSessionSecurityContextRepository()) }
-            .authorizeHttpRequests { it.anyRequest().authenticated() }
+            // Runs after the session context is loaded, so a Bearer token (CLI/agent)
+            // overrides it; absent, the session-cookie resolution (browser) stands unchanged.
+            .addFilterAfter(
+                ServiceTokenAuthenticationFilter(serviceTokenRepository, userRepository),
+                SecurityContextHolderFilter::class.java,
+            ).authorizeHttpRequests { it.anyRequest().authenticated() }
             .exceptionHandling { it.authenticationEntryPoint(forwardAuthEntryPoint()) }
         return http.build()
     }

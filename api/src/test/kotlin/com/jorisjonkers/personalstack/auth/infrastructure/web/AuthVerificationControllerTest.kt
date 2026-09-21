@@ -8,6 +8,7 @@ import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
+import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpSession
 import java.util.UUID
 
@@ -24,19 +25,27 @@ class AuthVerificationControllerTest {
     private fun buildUserWithUuid(
         id: UUID = defaultUserId,
         roles: List<String> = listOf("ROLE_USER"),
+        viaServiceToken: Boolean = false,
     ): AuthenticatedUser =
         AuthenticatedUser.of(
             userId = UserId(id),
             username = "testuser",
             roles = roles,
+            viaServiceToken = viaServiceToken,
         )
+
+    // Attaches an existing session, mimicking a browser call that already carries a
+    // session cookie -- getSession(false) will find it without creating one.
+    private fun requestWithSession(session: MockHttpSession = MockHttpSession()): MockHttpServletRequest =
+        MockHttpServletRequest().apply { setSession(session) }
 
     @Test
     fun `verify returns 200 with user headers for valid session`() {
         val user = buildUserWithUuid(roles = listOf("ROLE_USER", "SERVICE_VAULT"))
         val session = MockHttpSession()
+        val request = requestWithSession(session)
 
-        val response = controller.verify(user, session, "vault.jorisjonkers.dev")
+        val response = controller.verify(user, request, "vault.jorisjonkers.dev")
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(response.headers["X-User-Id"]).containsExactly(defaultUserId.toString())
@@ -49,8 +58,9 @@ class AuthVerificationControllerTest {
     fun `verify returns 403 when USER lacks service permission`() {
         val user = buildUserWithUuid(roles = listOf("ROLE_USER"))
         val session = MockHttpSession()
+        val request = requestWithSession(session)
 
-        val response = controller.verify(user, session, "vault.jorisjonkers.dev")
+        val response = controller.verify(user, request, "vault.jorisjonkers.dev")
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
         assertThat(session.getAttribute(AuthVerificationController.LAST_VERIFIED_AT_SESSION_KEY)).isNotNull()
@@ -59,9 +69,8 @@ class AuthVerificationControllerTest {
     @Test
     fun `verify returns 200 for ADMIN regardless of service`() {
         val user = buildUserWithUuid(roles = listOf("ROLE_ADMIN"))
-        val session = MockHttpSession()
 
-        val response = controller.verify(user, session, "dashboard.jorisjonkers.dev")
+        val response = controller.verify(user, requestWithSession(), "dashboard.jorisjonkers.dev")
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
     }
@@ -69,9 +78,8 @@ class AuthVerificationControllerTest {
     @Test
     fun `verify returns 200 when USER has dashboard service permission`() {
         val user = buildUserWithUuid(roles = listOf("ROLE_USER", "SERVICE_DASHBOARD"))
-        val session = MockHttpSession()
 
-        val response = controller.verify(user, session, "dashboard.jorisjonkers.dev")
+        val response = controller.verify(user, requestWithSession(), "dashboard.jorisjonkers.dev")
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
     }
@@ -79,9 +87,8 @@ class AuthVerificationControllerTest {
     @Test
     fun `verify returns 200 when no X-Forwarded-Host present`() {
         val user = buildUserWithUuid(roles = listOf("ROLE_USER"))
-        val session = MockHttpSession()
 
-        val response = controller.verify(user, session, null)
+        val response = controller.verify(user, requestWithSession(), null)
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
     }
@@ -90,9 +97,8 @@ class AuthVerificationControllerTest {
     fun `verify propagates X-User-Id from session principal`() {
         val id = UUID.randomUUID()
         val user = buildUserWithUuid(id = id)
-        val session = MockHttpSession()
 
-        val response = controller.verify(user, session, null)
+        val response = controller.verify(user, requestWithSession(), null)
 
         assertThat(response.headers["X-User-Id"]).containsExactly(id.toString())
     }
@@ -100,9 +106,8 @@ class AuthVerificationControllerTest {
     @Test
     fun `verify propagates X-User-Roles header`() {
         val user = buildUserWithUuid(roles = listOf("ROLE_USER", "SERVICE_MAIL"))
-        val session = MockHttpSession()
 
-        val response = controller.verify(user, session, null)
+        val response = controller.verify(user, requestWithSession(), null)
 
         assertThat(response.headers["X-User-Roles"]).containsExactly("ROLE_USER,SERVICE_MAIL")
     }
@@ -110,9 +115,8 @@ class AuthVerificationControllerTest {
     @Test
     fun `verify with multiple roles joins them with comma`() {
         val user = buildUserWithUuid(roles = listOf("ROLE_USER", "SERVICE_VAULT", "SERVICE_GRAFANA"))
-        val session = MockHttpSession()
 
-        val response = controller.verify(user, session, null)
+        val response = controller.verify(user, requestWithSession(), null)
 
         assertThat(response.headers["X-User-Roles"])
             .containsExactly("ROLE_USER,SERVICE_VAULT,SERVICE_GRAFANA")
@@ -121,10 +125,38 @@ class AuthVerificationControllerTest {
     @Test
     fun `unknown subdomain host passes through without permission check`() {
         val user = buildUserWithUuid(roles = listOf("ROLE_USER"))
-        val session = MockHttpSession()
 
-        val response = controller.verify(user, session, "unknown-service.jorisjonkers.dev")
+        val response = controller.verify(user, requestWithSession(), "unknown-service.jorisjonkers.dev")
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+    }
+
+    @Test
+    fun `service-token caller is rejected on a host with no ServicePermission mapping`() {
+        val user = buildUserWithUuid(roles = listOf("SERVICE_MEMORY_API"), viaServiceToken = true)
+
+        val response = controller.verify(user, requestWithSession(), "unknown-service.jorisjonkers.dev")
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+    }
+
+    @Test
+    fun `service-token caller is rejected when no X-Forwarded-Host is present`() {
+        val user = buildUserWithUuid(roles = listOf("SERVICE_MEMORY_API"), viaServiceToken = true)
+
+        val response = controller.verify(user, requestWithSession(), null)
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+    }
+
+    @Test
+    fun `verify with no session on the request does not create one`() {
+        val user = buildUserWithUuid(roles = listOf("ROLE_USER", "SERVICE_MEMORY_API"))
+        val request = MockHttpServletRequest()
+
+        val response = controller.verify(user, request, "memory-api.jorisjonkers.dev")
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(request.getSession(false)).isNull()
     }
 }
