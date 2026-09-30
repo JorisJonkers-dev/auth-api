@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.10.0...v0.11.0) (2026-09-30)
+
+
+### Features
+
+* **auth:** register Tribelt as an OIDC client ([#75](https://github.com/JorisJonkers-dev/auth-api/issues/75)) ([ef45d3d](https://github.com/JorisJonkers-dev/auth-api/commit/ef45d3dd786c2c8644c880b4e05f83b25475d376))
+
 ## [0.10.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.9.1...v0.10.0) (2026-09-21)
 
 
