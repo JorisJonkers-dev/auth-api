@@ -72,4 +72,41 @@ class RegisteredClientsTest {
                 "https://hermes.jorisjonkers.test/auth/callback",
             )
     }
+
+    @Test
+    fun `tribelt is a confidential PKCE client whose redirect matches the stats callback`() {
+        val client = buildTribeltClient("tribelt-test-secret")
+
+        assertThat(client.id).isEqualTo(UUID.nameUUIDFromBytes("tribelt".toByteArray()).toString())
+        assertThat(client.clientId).isEqualTo("tribelt")
+        assertThat(client.clientSecret).isEqualTo("{noop}tribelt-test-secret")
+        assertThat(client.clientAuthenticationMethods)
+            .containsExactlyInAnyOrder(
+                ClientAuthenticationMethod.CLIENT_SECRET_BASIC,
+                ClientAuthenticationMethod.CLIENT_SECRET_POST,
+            )
+        assertThat(client.clientSettings.isRequireProofKey).isTrue
+        assertThat(client.clientSettings.isRequireAuthorizationConsent).isFalse
+        assertThat(client.authorizationGrantTypes)
+            .containsExactlyInAnyOrder(
+                AuthorizationGrantType.AUTHORIZATION_CODE,
+                AuthorizationGrantType.REFRESH_TOKEN,
+            )
+        assertThat(client.scopes)
+            .containsExactlyInAnyOrder(
+                OidcScopes.OPENID,
+                OidcScopes.PROFILE,
+                OidcScopes.EMAIL,
+            )
+        assertThat(client.redirectUris)
+            .containsExactlyInAnyOrder(
+                "https://tribelt.jorisjonkers.dev/auth/callback",
+                "https://tribelt.jorisjonkers.test/auth/callback",
+            )
+        assertThat(client.postLogoutRedirectUris)
+            .containsExactlyInAnyOrder(
+                "https://tribelt.jorisjonkers.dev/",
+                "https://tribelt.jorisjonkers.test/",
+            )
+    }
 }

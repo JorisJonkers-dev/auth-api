@@ -67,14 +67,7 @@ class AuthorizationServerConfig(
     private val issuer: String,
     @param:Value("\${auth.login-url:http://localhost:5174/login}")
     private val loginUrl: String,
-    @param:Value("\${auth.clients.grafana.secret:grafana-secret}")
-    private val grafanaClientSecret: String,
-    @param:Value("\${auth.clients.n8n.secret:n8n-secret}")
-    private val n8nClientSecret: String,
-    @param:Value("\${auth.clients.outline.secret:outline-secret}")
-    private val outlineClientSecret: String,
-    @param:Value("\${auth.clients.vault.secret:vault-secret}")
-    private val vaultClientSecret: String,
+    private val clientSecrets: DownstreamClientSecrets,
 ) {
     @Bean
     @Order(1)
@@ -170,14 +163,15 @@ class AuthorizationServerConfig(
             buildAppUiClient(),
             buildAppNativeClient(),
             buildAgentsApiClient(),
-            buildGrafanaClient(grafanaClientSecret),
-            buildN8nClient(n8nClientSecret),
-            buildOutlineClient(outlineClientSecret),
+            buildGrafanaClient(clientSecrets.grafana),
+            buildN8nClient(clientSecrets.n8n),
+            buildOutlineClient(clientSecrets.outline),
             buildRabbitMqClient(),
-            buildVaultClient(vaultClientSecret),
+            buildVaultClient(clientSecrets.vault),
             buildHeadlampClient(),
             buildImmichClient(),
             buildHermesClient(),
+            buildTribeltClient(clientSecrets.tribelt),
         )
 
     // The JdbcOAuth2AuthorizationService constructor calls getColumnMetadata()
@@ -311,6 +305,7 @@ class AuthorizationServerConfig(
                 // forward-auth and the HERMES grant is enforced here at the
                 // authorize endpoint instead — the same shape as outline.
                 "hermes" to ServicePermission.HERMES,
+                "tribelt" to ServicePermission.TRIBELT,
             )
     }
 }

@@ -92,6 +92,9 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
         private const val VAULT_CLIENT_SECRET = "vault-secret"
         private const val HEADLAMP_CLIENT_ID = "headlamp"
         private const val HEADLAMP_REDIRECT_URI = "https://dashboard.jorisjonkers.test/oidc-callback"
+        private const val TRIBELT_CLIENT_ID = "tribelt"
+        private const val TRIBELT_REDIRECT_URI = "https://tribelt.jorisjonkers.test/auth/callback"
+        private const val TRIBELT_CLIENT_SECRET = "tribelt-secret"
     }
 
     @BeforeEach
@@ -533,6 +536,7 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
         val rabbitMqClient = registeredClientRepository.findByClientId("rabbitmq")
         val vaultClient = registeredClientRepository.findByClientId(VAULT_CLIENT_ID)
         val outlineClient = registeredClientRepository.findByClientId("outline")
+        val tribeltClient = registeredClientRepository.findByClientId(TRIBELT_CLIENT_ID)
 
         assertThat(grafanaClient).isNotNull()
         assertThat(grafanaClient!!.redirectUris).contains(GRAFANA_REDIRECT_URI)
@@ -549,6 +553,12 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
         assertThat(outlineClient!!.redirectUris).contains(OUTLINE_REDIRECT_URI)
         assertThat(outlineClient.clientAuthenticationMethods).contains(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
         assertThat(outlineClient.scopes).contains(OidcScopes.OPENID, OidcScopes.PROFILE, OidcScopes.EMAIL)
+
+        assertThat(tribeltClient).isNotNull()
+        assertThat(tribeltClient!!.redirectUris).contains(TRIBELT_REDIRECT_URI)
+        assertThat(tribeltClient.clientAuthenticationMethods).contains(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+        assertThat(tribeltClient.clientSettings.isRequireProofKey).isTrue()
+        assertThat(tribeltClient.scopes).contains(OidcScopes.OPENID, OidcScopes.PROFILE, OidcScopes.EMAIL)
 
         assertThat(rabbitMqClient).isNotNull()
         assertThat(rabbitMqClient!!.redirectUris).contains(RABBITMQ_REDIRECT_URI)
@@ -578,6 +588,7 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
                 Triple(VAULT_CLIENT_ID, VAULT_REDIRECT_URI, "openid profile email"),
                 Triple("n8n", N8N_REDIRECT_URI, "openid profile email"),
                 Triple("outline", OUTLINE_REDIRECT_URI, "openid profile email"),
+                Triple(TRIBELT_CLIENT_ID, TRIBELT_REDIRECT_URI, "openid profile email"),
                 Triple("rabbitmq", RABBITMQ_REDIRECT_URI, "openid profile email"),
                 Triple(HEADLAMP_CLIENT_ID, HEADLAMP_REDIRECT_URI, "openid profile email groups"),
             )
@@ -658,6 +669,65 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
             assertThat(decodedAccessToken.audience).contains("rabbitmq")
             assertThat(decodedAccessToken.getClaimAsStringList("roles")).contains("ROLE_USER", "SERVICE_RABBITMQ")
         }
+    }
+
+    @Test
+    fun `users with tribelt service permission can authorize tribelt oidc client`() {
+        val username = uniqueUsername()
+        val password = "securepass123"
+        registerAndConfirmUser(username, password)
+        grantServicePermission(username, ServicePermission.TRIBELT)
+
+        val loginResult = doSessionLogin(username, password)
+        val session = extractSession(loginResult)!!
+        val codeVerifier = generateCodeVerifier()
+        val codeChallenge = generateCodeChallenge(codeVerifier)
+
+        val authorizeResult =
+            mockMvc
+                .get("/api/oauth2/authorize") {
+                    param("response_type", "code")
+                    param("client_id", TRIBELT_CLIENT_ID)
+                    param("redirect_uri", TRIBELT_REDIRECT_URI)
+                    param("scope", "openid profile email")
+                    param("code_challenge", codeChallenge)
+                    param("code_challenge_method", "S256")
+                    param("state", "allow-tribelt-service-user")
+                    accept = MediaType.TEXT_HTML
+                    this.session = session
+                }.andReturn()
+
+        assertThat(authorizeResult.response.status)
+            .describedAs("tribelt client should be allowed for a SERVICE_TRIBELT session")
+            .isIn(302, 400)
+
+        val location = authorizeResult.response.getHeader("Location")
+        if (location == null || !location.contains("code=")) {
+            return
+        }
+        assertThat(location).startsWith(TRIBELT_REDIRECT_URI)
+        val code = location.substringAfter("code=").substringBefore("&")
+
+        val tokenResult =
+            mockMvc
+                .post("/api/oauth2/token") {
+                    contentType = MediaType.APPLICATION_FORM_URLENCODED
+                    content =
+                        "grant_type=authorization_code" +
+                        "&code=${URLEncoder.encode(code, StandardCharsets.UTF_8)}" +
+                        "&redirect_uri=${URLEncoder.encode(TRIBELT_REDIRECT_URI, StandardCharsets.UTF_8)}" +
+                        "&client_id=$TRIBELT_CLIENT_ID" +
+                        "&client_secret=$TRIBELT_CLIENT_SECRET" +
+                        "&code_verifier=$codeVerifier"
+                }.andExpect { status { isOk() } }
+                .andReturn()
+
+        val tokenJson = objectMapper.readTree(tokenResult.response.contentAsString)
+        val decodedIdToken = jwtDecoder.decode(tokenJson["id_token"].asText())
+
+        // The stats app double-checks this claim after the authorize-endpoint gate.
+        assertThat(decodedIdToken.audience).contains(TRIBELT_CLIENT_ID)
+        assertThat(decodedIdToken.getClaimAsStringList("roles")).contains("ROLE_USER", "SERVICE_TRIBELT")
     }
 
     @Test
@@ -761,6 +831,12 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
                     "openid profile email groups",
                     true,
                 ),
+                OidcClientRequest(
+                    TRIBELT_CLIENT_ID,
+                    TRIBELT_REDIRECT_URI,
+                    "openid profile email",
+                    true,
+                ),
             )
 
         requests.forEach { (clientId, redirectUri, scope, requiresPkce) ->
@@ -815,6 +891,12 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
                     N8N_REDIRECT_URI,
                     "openid profile email",
                     N8N_CLIENT_SECRET,
+                ),
+                ConfidentialClientRequest(
+                    TRIBELT_CLIENT_ID,
+                    TRIBELT_REDIRECT_URI,
+                    "openid profile email",
+                    TRIBELT_CLIENT_SECRET,
                 ),
             )
 

@@ -169,6 +169,27 @@ fun buildOutlineClient(secret: String): RegisteredClient =
         .tokenSettings(defaultTokenSettings())
         .build()
 
+// Tribelt mirror at tribelt.jorisjonkers.dev: a confidential client that also sends PKCE.
+fun buildTribeltClient(secret: String): RegisteredClient =
+    RegisteredClient
+        .withId(deterministicId("tribelt"))
+        .clientId("tribelt")
+        .clientSecret("{noop}$secret")
+        .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+        .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
+        .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+        .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+        .redirectUri("https://tribelt.jorisjonkers.dev/auth/callback")
+        .redirectUri("https://tribelt.jorisjonkers.test/auth/callback")
+        .postLogoutRedirectUri("https://tribelt.jorisjonkers.dev/")
+        .postLogoutRedirectUri("https://tribelt.jorisjonkers.test/")
+        .scope(OidcScopes.OPENID)
+        .scope(OidcScopes.PROFILE)
+        .scope(OidcScopes.EMAIL)
+        .clientSettings(noConsentSettings(requirePkce = true))
+        .tokenSettings(defaultTokenSettings())
+        .build()
+
 fun buildVaultClient(secret: String): RegisteredClient =
     RegisteredClient
         .withId(deterministicId("vault"))
