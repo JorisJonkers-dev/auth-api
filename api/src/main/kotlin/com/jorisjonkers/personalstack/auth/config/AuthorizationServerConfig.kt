@@ -75,6 +75,8 @@ class AuthorizationServerConfig(
     private val outlineClientSecret: String,
     @param:Value("\${auth.clients.vault.secret:vault-secret}")
     private val vaultClientSecret: String,
+    @param:Value("\${auth.clients.tribelt.secret:tribelt-secret}")
+    private val tribeltClientSecret: String,
 ) {
     @Bean
     @Order(1)
@@ -178,6 +180,7 @@ class AuthorizationServerConfig(
             buildHeadlampClient(),
             buildImmichClient(),
             buildHermesClient(),
+            buildTribeltClient(tribeltClientSecret),
         )
 
     // The JdbcOAuth2AuthorizationService constructor calls getColumnMetadata()
@@ -311,6 +314,7 @@ class AuthorizationServerConfig(
                 // forward-auth and the HERMES grant is enforced here at the
                 // authorize endpoint instead — the same shape as outline.
                 "hermes" to ServicePermission.HERMES,
+                "tribelt" to ServicePermission.TRIBELT,
             )
     }
 }

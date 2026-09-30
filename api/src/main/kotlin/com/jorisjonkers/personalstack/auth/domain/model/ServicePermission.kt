@@ -93,6 +93,9 @@ enum class ServicePermission(
     // to exactly one of these permissions -- see ServiceTokenController.
     MEMORY_API("memory-api"),
     MEMORY_MCP("memory-mcp"),
+
+    // Own OIDC flow on an anonymous public route; the grant is enforced at the authorize endpoint.
+    TRIBELT("tribelt"),
     ;
 
     val subdomains: Set<String> = subdomains.toSet()
