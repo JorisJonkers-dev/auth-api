@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.11.0...v0.12.0) (2026-10-01)
+
+
+### Features
+
+* **auth:** add the GRIMOIRE service permission ([#77](https://github.com/JorisJonkers-dev/auth-api/issues/77)) ([558cc3d](https://github.com/JorisJonkers-dev/auth-api/commit/558cc3dc772313b0cd5891b57b71ee36013d524f))
+
 ## [0.11.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.10.0...v0.11.0) (2026-09-30)
 
 
