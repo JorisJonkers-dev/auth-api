@@ -42,6 +42,8 @@ class ServicePermissionTest {
         "overleaf.jorisjonkers.test, OVERLEAF",
         "tribelt.jorisjonkers.dev, TRIBELT",
         "tribelt.jorisjonkers.test, TRIBELT",
+        "grimoire.jorisjonkers.dev, GRIMOIRE",
+        "grimoire.jorisjonkers.test, GRIMOIRE",
     )
     fun `fromHost resolves production and local dev hostnames`(
         host: String,

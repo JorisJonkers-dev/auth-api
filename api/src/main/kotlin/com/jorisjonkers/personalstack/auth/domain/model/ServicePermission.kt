@@ -96,6 +96,9 @@ enum class ServicePermission(
 
     // Own OIDC flow on an anonymous public route; the grant is enforced at the authorize endpoint.
     TRIBELT("tribelt"),
+
+    // Grimoire D&D table at grimoire.jorisjonkers.dev, behind forward-auth; this entry is its only per-user gate.
+    GRIMOIRE("grimoire"),
     ;
 
     val subdomains: Set<String> = subdomains.toSet()
