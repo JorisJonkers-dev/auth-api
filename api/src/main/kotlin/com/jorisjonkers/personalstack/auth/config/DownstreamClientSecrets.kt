@@ -15,4 +15,8 @@ class DownstreamClientSecrets(
     val vault: String,
     @param:Value("\${auth.clients.tribelt.secret:tribelt-secret}")
     val tribelt: String,
+    // Supplied as AUTH_CLIENTS_ESTATE_DASHBOARD_SECRET.
+    // AUTH_CLIENTS_ESTATEDASHBOARD_SECRET does not resolve this placeholder.
+    @param:Value("\${auth.clients.estate-dashboard.secret:estate-dashboard-secret}")
+    val estateDashboard: String,
 )

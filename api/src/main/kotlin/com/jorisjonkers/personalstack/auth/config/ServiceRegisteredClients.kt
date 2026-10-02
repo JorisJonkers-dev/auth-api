@@ -190,6 +190,30 @@ fun buildTribeltClient(secret: String): RegisteredClient =
         .tokenSettings(defaultTokenSettings())
         .build()
 
+// Estate delivery dashboard at estate.jorisjonkers.dev: a confidential client that also sends
+// PKCE, the tribelt shape. It is deliberately absent from DOWNSTREAM_CLIENT_PERMISSIONS: every
+// signed-in user gets a code, and the dashboard reads ROLE_ADMIN from the roles claim itself, so
+// a non-admin lands on its own Not-an-admin page instead of a bare 403 from here.
+fun buildEstateDashboardClient(secret: String): RegisteredClient =
+    RegisteredClient
+        .withId(deterministicId("estate-dashboard"))
+        .clientId("estate-dashboard")
+        .clientSecret("{noop}$secret")
+        .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+        .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
+        .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+        .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+        .redirectUri("https://estate.jorisjonkers.dev/auth/callback")
+        .redirectUri("https://estate.jorisjonkers.test/auth/callback")
+        .postLogoutRedirectUri("https://estate.jorisjonkers.dev/")
+        .postLogoutRedirectUri("https://estate.jorisjonkers.test/")
+        .scope(OidcScopes.OPENID)
+        .scope(OidcScopes.PROFILE)
+        .scope(OidcScopes.EMAIL)
+        .clientSettings(noConsentSettings(requirePkce = true))
+        .tokenSettings(defaultTokenSettings())
+        .build()
+
 fun buildVaultClient(secret: String): RegisteredClient =
     RegisteredClient
         .withId(deterministicId("vault"))
