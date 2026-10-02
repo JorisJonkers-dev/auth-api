@@ -109,4 +109,41 @@ class RegisteredClientsTest {
                 "https://tribelt.jorisjonkers.test/",
             )
     }
+
+    @Test
+    fun `estate-dashboard is a confidential PKCE client whose redirect matches the dashboard callback`() {
+        val client = buildEstateDashboardClient("estate-dashboard-test-secret")
+
+        assertThat(client.id).isEqualTo(UUID.nameUUIDFromBytes("estate-dashboard".toByteArray()).toString())
+        assertThat(client.clientId).isEqualTo("estate-dashboard")
+        assertThat(client.clientSecret).isEqualTo("{noop}estate-dashboard-test-secret")
+        assertThat(client.clientAuthenticationMethods)
+            .containsExactlyInAnyOrder(
+                ClientAuthenticationMethod.CLIENT_SECRET_BASIC,
+                ClientAuthenticationMethod.CLIENT_SECRET_POST,
+            )
+        assertThat(client.clientSettings.isRequireProofKey).isTrue
+        assertThat(client.clientSettings.isRequireAuthorizationConsent).isFalse
+        assertThat(client.authorizationGrantTypes)
+            .containsExactlyInAnyOrder(
+                AuthorizationGrantType.AUTHORIZATION_CODE,
+                AuthorizationGrantType.REFRESH_TOKEN,
+            )
+        assertThat(client.scopes)
+            .containsExactlyInAnyOrder(
+                OidcScopes.OPENID,
+                OidcScopes.PROFILE,
+                OidcScopes.EMAIL,
+            )
+        assertThat(client.redirectUris)
+            .containsExactlyInAnyOrder(
+                "https://estate.jorisjonkers.dev/auth/callback",
+                "https://estate.jorisjonkers.test/auth/callback",
+            )
+        assertThat(client.postLogoutRedirectUris)
+            .containsExactlyInAnyOrder(
+                "https://estate.jorisjonkers.dev/",
+                "https://estate.jorisjonkers.test/",
+            )
+    }
 }

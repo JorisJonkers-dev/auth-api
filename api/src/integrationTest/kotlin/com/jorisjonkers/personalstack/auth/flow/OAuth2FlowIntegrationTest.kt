@@ -1,5 +1,6 @@
 package com.jorisjonkers.personalstack.auth.flow
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.jorisjonkers.personalstack.auth.IntegrationTestBase
 import com.jorisjonkers.personalstack.auth.domain.model.ServicePermission
@@ -25,6 +26,7 @@ import org.springframework.security.oauth2.core.oidc.OidcScopes
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository
 import org.springframework.test.web.servlet.MockMvc
@@ -34,6 +36,7 @@ import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
+import java.net.URI
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
@@ -95,6 +98,9 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
         private const val TRIBELT_CLIENT_ID = "tribelt"
         private const val TRIBELT_REDIRECT_URI = "https://tribelt.jorisjonkers.test/auth/callback"
         private const val TRIBELT_CLIENT_SECRET = "tribelt-secret"
+        private const val ESTATE_DASHBOARD_CLIENT_ID = "estate-dashboard"
+        private const val ESTATE_DASHBOARD_REDIRECT_URI = "https://estate.jorisjonkers.test/auth/callback"
+        private const val ESTATE_DASHBOARD_CLIENT_SECRET = "estate-dashboard-secret"
     }
 
     @BeforeEach
@@ -728,6 +734,114 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
         // The stats app double-checks this claim after the authorize-endpoint gate.
         assertThat(decodedIdToken.audience).contains(TRIBELT_CLIENT_ID)
         assertThat(decodedIdToken.getClaimAsStringList("roles")).contains("ROLE_USER", "SERVICE_TRIBELT")
+    }
+
+    // Runs the estate dashboard's own sign-in: authorize with PKCE, then exchange the code with
+    // the client secret over client_secret_basic. Returns the token response.
+    //
+    // The authorize parameters travel in the query string, not through MockMvc's param():
+    // the authorization server reads a GET authorization request from the query string
+    // alone, and param() leaves it empty, which is answered 400 "OAuth 2.0 Parameter:
+    // response_type" before the session is ever consulted. The param()-based tests above
+    // accept that 400 and return early, so they never reach a code. A URI, not a template
+    // string, so the already-encoded redirect_uri is not encoded a second time.
+    private fun signInToEstateDashboard(session: MockHttpSession): JsonNode {
+        val codeVerifier = generateCodeVerifier()
+        val codeChallenge = generateCodeChallenge(codeVerifier)
+        val query =
+            mapOf(
+                "response_type" to "code",
+                "client_id" to ESTATE_DASHBOARD_CLIENT_ID,
+                "redirect_uri" to ESTATE_DASHBOARD_REDIRECT_URI,
+                "scope" to "openid profile email",
+                "code_challenge" to codeChallenge,
+                "code_challenge_method" to "S256",
+                "state" to "estate-dashboard-sign-in",
+            ).entries.joinToString("&") { (name, value) ->
+                // %20, not URLEncoder's form-style +: the server takes a + in the query
+                // string literally, and "openid+profile+email" is an invalid_scope.
+                "$name=${URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20")}"
+            }
+
+        val authorizeResult =
+            mockMvc
+                .get(URI("/api/oauth2/authorize?$query")) {
+                    accept = MediaType.TEXT_HTML
+                    this.session = session
+                }.andReturn()
+
+        assertThat(authorizeResult.response.status)
+            .describedAs("authorize answered %s", authorizeResult.response.errorMessage)
+            .isEqualTo(302)
+        val location = authorizeResult.response.getHeader("Location")
+        assertThat(location).startsWith(ESTATE_DASHBOARD_REDIRECT_URI).contains("code=")
+        val code = location!!.substringAfter("code=").substringBefore("&")
+
+        return postEstateDashboardToken(
+            "grant_type=authorization_code" +
+                "&code=${URLEncoder.encode(code, StandardCharsets.UTF_8)}" +
+                "&redirect_uri=${URLEncoder.encode(ESTATE_DASHBOARD_REDIRECT_URI, StandardCharsets.UTF_8)}" +
+                "&code_verifier=$codeVerifier",
+        )
+    }
+
+    private fun postEstateDashboardToken(form: String): JsonNode {
+        val tokenResult =
+            mockMvc
+                .post("/api/oauth2/token") {
+                    contentType = MediaType.APPLICATION_FORM_URLENCODED
+                    with(httpBasic(ESTATE_DASHBOARD_CLIENT_ID, ESTATE_DASHBOARD_CLIENT_SECRET))
+                    content = form
+                }.andExpect { status { isOk() } }
+                .andReturn()
+        return objectMapper.readTree(tokenResult.response.contentAsString)
+    }
+
+    @Test
+    fun `admin signs in to the estate dashboard and keeps the admin role across a token renewal`() {
+        val username = uniqueUsername()
+        val password = "securepass123"
+        registerAndConfirmUser(username, password)
+        dsl
+            .update(APP_USER)
+            .set(APP_USER.ROLE, "ADMIN")
+            .where(APP_USER.USERNAME.eq(username))
+            .execute()
+        val session = extractSession(doSessionLogin(username, password))!!
+
+        val tokenJson = signInToEstateDashboard(session)
+
+        val idToken = jwtDecoder.decode(tokenJson["id_token"].asText())
+        assertThat(idToken.audience).contains(ESTATE_DASHBOARD_CLIENT_ID)
+        assertThat(idToken.getClaimAsStringList("roles")).contains("ROLE_ADMIN")
+        assertThat(tokenJson["refresh_token"]).isNotNull()
+
+        // The dashboard renews its session through the token endpoint; the renewed ID token
+        // must still carry the role its admin check reads.
+        val refreshedJson =
+            postEstateDashboardToken(
+                "grant_type=refresh_token" +
+                    "&refresh_token=${URLEncoder.encode(tokenJson["refresh_token"].asText(), StandardCharsets.UTF_8)}",
+            )
+        val refreshedIdToken = jwtDecoder.decode(refreshedJson["id_token"].asText())
+        assertThat(refreshedIdToken.getClaimAsStringList("roles")).contains("ROLE_ADMIN")
+    }
+
+    @Test
+    fun `non-admin is signed in to the estate dashboard without the admin role`() {
+        val username = uniqueUsername()
+        val password = "securepass123"
+        registerAndConfirmUser(username, password)
+        val session = extractSession(doSessionLogin(username, password))!!
+
+        // No authorize-endpoint gate: the dashboard shows its own Not-an-admin page, so auth
+        // must hand a non-admin a code and let the roles claim carry the refusal.
+        val tokenJson = signInToEstateDashboard(session)
+
+        val idToken = jwtDecoder.decode(tokenJson["id_token"].asText())
+        assertThat(idToken.getClaimAsStringList("roles"))
+            .contains("ROLE_USER")
+            .doesNotContain("ROLE_ADMIN")
     }
 
     @Test

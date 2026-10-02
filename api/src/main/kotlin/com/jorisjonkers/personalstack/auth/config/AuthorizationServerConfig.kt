@@ -176,6 +176,7 @@ class AuthorizationServerConfig(
             buildImmichClient(),
             buildHermesClient(),
             buildTribeltClient(clientSecrets.tribelt),
+            buildEstateDashboardClient(clientSecrets.estateDashboard),
         )
 
     // The JdbcOAuth2AuthorizationService constructor calls getColumnMetadata()
