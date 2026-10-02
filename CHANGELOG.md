@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.12.0...v0.12.1) (2026-10-02)
+
+
+### Bug Fixes
+
+* **auth:** carry permission changes into open sessions ([#81](https://github.com/JorisJonkers-dev/auth-api/issues/81)) ([1c707c0](https://github.com/JorisJonkers-dev/auth-api/commit/1c707c0238ce75e4dfec4ab2f43c791c897c23a8))
+
 ## [0.12.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.11.0...v0.12.0) (2026-10-01)
 
 
