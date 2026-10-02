@@ -2,7 +2,9 @@ package com.jorisjonkers.personalstack.auth.config
 
 import com.jorisjonkers.personalstack.auth.domain.model.ServicePermission
 import com.jorisjonkers.personalstack.auth.domain.model.UserId
+import com.jorisjonkers.personalstack.auth.domain.port.UserRepository
 import com.jorisjonkers.personalstack.auth.infrastructure.security.AuthenticatedUser
+import com.jorisjonkers.personalstack.auth.infrastructure.security.SessionRolesRefreshFilter
 import com.nimbusds.jose.jwk.source.JWKSource
 import com.nimbusds.jose.proc.SecurityContext
 import jakarta.servlet.FilterChain
@@ -75,6 +77,7 @@ class AuthorizationServerConfig(
         http: HttpSecurity,
         corsConfigurationSource: CorsConfigurationSource,
         jwkSource: JWKSource<SecurityContext>,
+        userRepository: UserRepository,
     ): SecurityFilterChain {
         // Hand the JWK source over explicitly.
         //
@@ -132,7 +135,8 @@ class AuthorizationServerConfig(
                     authorize.requestMatchers(PathPatternRequestMatcher.pathPattern(endpoint)).permitAll()
                 }
                 authorize.anyRequest().authenticated()
-            }.addFilterAfter(downstreamClientAuthorizationFilter(), SecurityContextHolderFilter::class.java)
+            }.addFilterAfter(SessionRolesRefreshFilter(userRepository), SecurityContextHolderFilter::class.java)
+            .addFilterAfter(downstreamClientAuthorizationFilter(), SecurityContextHolderFilter::class.java)
             .securityContext { ctx ->
                 ctx.securityContextRepository(HttpSessionSecurityContextRepository())
             }.exceptionHandling { exceptions ->

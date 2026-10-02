@@ -4,6 +4,7 @@ import com.jorisjonkers.personalstack.auth.domain.model.Role
 import com.jorisjonkers.personalstack.auth.domain.model.ServicePermission
 import com.jorisjonkers.personalstack.auth.domain.model.UserCredentials
 import com.jorisjonkers.personalstack.auth.domain.port.UserRepository
+import com.jorisjonkers.personalstack.auth.infrastructure.security.sessionRoles
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.core.Authentication
@@ -21,7 +22,7 @@ class JwtTokenCustomizerConfig {
             val principal = context.getPrincipal<Authentication>()
             val credentials =
                 userRepository.findCredentialsByUsername(principal.name) ?: return@OAuth2TokenCustomizer
-            val roles = buildRoles(credentials)
+            val roles = credentials.sessionRoles()
 
             when {
                 context.tokenType == OAuth2TokenType.ACCESS_TOKEN ->
@@ -67,16 +68,6 @@ class JwtTokenCustomizerConfig {
             context.claims.claim("groups", k8sGroups)
         }
     }
-
-    private fun buildRoles(credentials: UserCredentials): List<String> =
-        buildList {
-            add("ROLE_${credentials.role.name}")
-            if (credentials.role == Role.ADMIN) {
-                addAll(ServicePermission.entries.map { "SERVICE_${it.name}" })
-            } else {
-                addAll(credentials.servicePermissions.map { "SERVICE_${it.name}" })
-            }
-        }
 
     // Kubernetes group membership for ID tokens issued to OIDC clients that
     // talk to the k3s API server (Headlamp). The k3s control plane runs
