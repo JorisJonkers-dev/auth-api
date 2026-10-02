@@ -1,13 +1,12 @@
 package com.jorisjonkers.personalstack.auth.infrastructure.web
 
 import com.jorisjonkers.personalstack.auth.domain.exception.EmailNotConfirmedException
-import com.jorisjonkers.personalstack.auth.domain.model.Role
-import com.jorisjonkers.personalstack.auth.domain.model.ServicePermission
 import com.jorisjonkers.personalstack.auth.domain.model.UserCredentials
 import com.jorisjonkers.personalstack.auth.domain.port.PasswordEncoder
 import com.jorisjonkers.personalstack.auth.domain.port.UserRepository
 import com.jorisjonkers.personalstack.auth.domain.service.TotpService
 import com.jorisjonkers.personalstack.auth.infrastructure.security.AuthenticatedUser
+import com.jorisjonkers.personalstack.auth.infrastructure.security.sessionRoles
 import com.jorisjonkers.personalstack.auth.infrastructure.web.dto.SessionLoginRequest
 import com.jorisjonkers.personalstack.auth.infrastructure.web.dto.SessionLoginResponse
 import com.jorisjonkers.personalstack.auth.infrastructure.web.dto.SessionUserResponse
@@ -109,7 +108,7 @@ class SessionLoginController(
             AuthenticatedUser.of(
                 userId = credentials.userId,
                 username = credentials.username,
-                roles = buildRoles(credentials),
+                roles = credentials.sessionRoles(),
             )
         // Spring Security 7.0.5's JwtGenerator derives auth_time from the latest
         // FactorGrantedAuthority on the Authentication and assert-fails the token
@@ -140,15 +139,5 @@ class SessionLoginController(
         buildList {
             add(FactorGrantedAuthority.fromFactor("PASSWORD"))
             if (totpUsed) add(FactorGrantedAuthority.fromFactor("OTT"))
-        }
-
-    private fun buildRoles(credentials: UserCredentials): List<String> =
-        buildList {
-            add("ROLE_${credentials.role.name}")
-            if (credentials.role == Role.ADMIN) {
-                addAll(ServicePermission.entries.map { "SERVICE_${it.name}" })
-            } else {
-                addAll(credentials.servicePermissions.map { "SERVICE_${it.name}" })
-            }
         }
 }

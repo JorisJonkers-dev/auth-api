@@ -3,6 +3,8 @@ package com.jorisjonkers.personalstack.auth.config
 import com.jorisjonkers.personalstack.auth.domain.port.ServiceTokenRepository
 import com.jorisjonkers.personalstack.auth.domain.port.UserRepository
 import com.jorisjonkers.personalstack.auth.infrastructure.security.ServiceTokenAuthenticationFilter
+import com.jorisjonkers.personalstack.auth.infrastructure.security.SessionRolesRefreshFilter
+import jakarta.servlet.DispatcherType
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Value
@@ -105,6 +107,7 @@ class SecurityConfig(
             .cors { it.configurationSource(corsConfigurationSource) }
             .csrf { it.disable() }
             .securityContext { it.securityContextRepository(HttpSessionSecurityContextRepository()) }
+            .addFilterAfter(SessionRolesRefreshFilter(userRepository), SecurityContextHolderFilter::class.java)
             // Runs after the session context is loaded, so a Bearer token (CLI/agent)
             // overrides it; absent, the session-cookie resolution (browser) stands unchanged.
             .addFilterAfter(
@@ -122,10 +125,12 @@ class SecurityConfig(
         corsConfigurationSource: CorsConfigurationSource,
         jwtDecoder: JwtDecoder,
         jwtAuthenticationConverter: JwtAuthenticatedUserConverter,
+        userRepository: UserRepository,
     ): SecurityFilterChain {
         http
             .cors { it.configurationSource(corsConfigurationSource) }
             .securityContext { it.securityContextRepository(HttpSessionSecurityContextRepository()) }
+            .addFilterAfter(SessionRolesRefreshFilter(userRepository), SecurityContextHolderFilter::class.java)
             .csrf { configureCsrf(it) }
             .addFilterAfter(CsrfCookieFilter(), CsrfFilter::class.java)
             .authorizeHttpRequests { configureAuthorization(it) }
@@ -162,6 +167,8 @@ class SecurityConfig(
             .AuthorizationManagerRequestMatcherRegistry,
     ) {
         PUBLIC_ENDPOINTS.forEach { auth.requestMatchers(it).permitAll() }
+        // A sendError() is re-dispatched to /error with no security context; gating it turned every 400/403 into a 401.
+        auth.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
         auth.anyRequest().authenticated()
     }
 
