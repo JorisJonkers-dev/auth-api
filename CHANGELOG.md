@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.12.1...v0.13.0) (2026-10-02)
+
+
+### Features
+
+* **auth:** register the estate dashboard as an OIDC client ([#84](https://github.com/JorisJonkers-dev/auth-api/issues/84)) ([2f03ab7](https://github.com/JorisJonkers-dev/auth-api/commit/2f03ab7b6d643c5bd4b60cc298450d0c664d857d)), closes [#79](https://github.com/JorisJonkers-dev/auth-api/issues/79)
+
 ## [0.12.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.12.0...v0.12.1) (2026-10-02)
 
 
