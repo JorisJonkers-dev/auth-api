@@ -19,7 +19,4 @@ class DownstreamClientSecrets(
     // AUTH_CLIENTS_ESTATEDASHBOARD_SECRET does not resolve this placeholder.
     @param:Value("\${auth.clients.estate-dashboard.secret:estate-dashboard-secret}")
     val estateDashboard: String,
-    // No fallback: without a secret the grimoire client is not registered.
-    @param:Value("\${auth.clients.grimoire.secret:}")
-    val grimoire: String,
 )

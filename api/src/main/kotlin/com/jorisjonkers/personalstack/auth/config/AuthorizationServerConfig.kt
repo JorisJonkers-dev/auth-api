@@ -161,7 +161,10 @@ class AuthorizationServerConfig(
     }
 
     @Bean
-    fun registeredClientRepository(): RegisteredClientRepository =
+    fun registeredClientRepository(
+        // No fallback: without a secret the grimoire client is not registered.
+        @Value("\${auth.clients.grimoire.secret:}") grimoireSecret: String,
+    ): RegisteredClientRepository =
         InMemoryRegisteredClientRepository(
             listOfNotNull(
                 buildAuthUiClient(),
@@ -178,7 +181,7 @@ class AuthorizationServerConfig(
                 buildHermesClient(),
                 buildTribeltClient(clientSecrets.tribelt),
                 buildEstateDashboardClient(clientSecrets.estateDashboard),
-                grimoireClientOrNull(clientSecrets.grimoire),
+                grimoireClientOrNull(grimoireSecret),
             ),
         )
 
