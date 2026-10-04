@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.13.0...v0.14.0) (2026-10-04)
+
+
+### Features
+
+* **auth:** register Grimoire as an OIDC client ([#86](https://github.com/JorisJonkers-dev/auth-api/issues/86)) ([a5d1484](https://github.com/JorisJonkers-dev/auth-api/commit/a5d148462050a7dbf6f34d2d916f049b935258f8))
+
 ## [0.13.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.12.1...v0.13.0) (2026-10-02)
 
 
