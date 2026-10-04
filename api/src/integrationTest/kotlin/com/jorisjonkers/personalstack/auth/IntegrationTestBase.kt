@@ -59,6 +59,8 @@ abstract class IntegrationTestBase {
         @JvmStatic
         @DynamicPropertySource
         fun configureProperties(registry: DynamicPropertyRegistry) {
+            // The grimoire client has no fallback secret, so the tests supply one to register it.
+            registry.add("auth.clients.grimoire.secret") { "grimoire-secret" }
             registry.add("spring.datasource.url") { postgres.jdbcUrl }
             registry.add("spring.datasource.username") { postgres.username }
             registry.add("spring.datasource.password") { postgres.password }
