@@ -163,20 +163,23 @@ class AuthorizationServerConfig(
     @Bean
     fun registeredClientRepository(): RegisteredClientRepository =
         InMemoryRegisteredClientRepository(
-            buildAuthUiClient(),
-            buildAppUiClient(),
-            buildAppNativeClient(),
-            buildAgentsApiClient(),
-            buildGrafanaClient(clientSecrets.grafana),
-            buildN8nClient(clientSecrets.n8n),
-            buildOutlineClient(clientSecrets.outline),
-            buildRabbitMqClient(),
-            buildVaultClient(clientSecrets.vault),
-            buildHeadlampClient(),
-            buildImmichClient(),
-            buildHermesClient(),
-            buildTribeltClient(clientSecrets.tribelt),
-            buildEstateDashboardClient(clientSecrets.estateDashboard),
+            listOfNotNull(
+                buildAuthUiClient(),
+                buildAppUiClient(),
+                buildAppNativeClient(),
+                buildAgentsApiClient(),
+                buildGrafanaClient(clientSecrets.grafana),
+                buildN8nClient(clientSecrets.n8n),
+                buildOutlineClient(clientSecrets.outline),
+                buildRabbitMqClient(),
+                buildVaultClient(clientSecrets.vault),
+                buildHeadlampClient(),
+                buildImmichClient(),
+                buildHermesClient(),
+                buildTribeltClient(clientSecrets.tribelt),
+                buildEstateDashboardClient(clientSecrets.estateDashboard),
+                grimoireClientOrNull(clientSecrets.grimoire),
+            ),
         )
 
     // The JdbcOAuth2AuthorizationService constructor calls getColumnMetadata()
@@ -311,6 +314,9 @@ class AuthorizationServerConfig(
                 // authorize endpoint instead — the same shape as outline.
                 "hermes" to ServicePermission.HERMES,
                 "tribelt" to ServicePermission.TRIBELT,
+                // Grimoire also checks the grant in the roles claim; refusing here keeps a code
+                // from being issued to somebody without it.
+                "grimoire" to ServicePermission.GRIMOIRE,
             )
     }
 }

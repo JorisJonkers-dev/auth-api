@@ -146,4 +146,49 @@ class RegisteredClientsTest {
                 "https://estate.jorisjonkers.test/",
             )
     }
+
+    @Test
+    fun `grimoire is a confidential PKCE client whose redirect matches the sign-in callback`() {
+        val client = buildGrimoireClient("grimoire-test-secret")
+
+        assertThat(client.id).isEqualTo(UUID.nameUUIDFromBytes("grimoire".toByteArray()).toString())
+        assertThat(client.clientId).isEqualTo("grimoire")
+        assertThat(client.clientSecret).isEqualTo("{noop}grimoire-test-secret")
+        assertThat(client.clientAuthenticationMethods)
+            .containsExactlyInAnyOrder(
+                ClientAuthenticationMethod.CLIENT_SECRET_BASIC,
+                ClientAuthenticationMethod.CLIENT_SECRET_POST,
+            )
+        assertThat(client.clientSettings.isRequireProofKey).isTrue
+        assertThat(client.clientSettings.isRequireAuthorizationConsent).isFalse
+        assertThat(client.authorizationGrantTypes)
+            .containsExactlyInAnyOrder(
+                AuthorizationGrantType.AUTHORIZATION_CODE,
+                AuthorizationGrantType.REFRESH_TOKEN,
+            )
+        assertThat(client.scopes)
+            .containsExactlyInAnyOrder(
+                OidcScopes.OPENID,
+                OidcScopes.PROFILE,
+                OidcScopes.EMAIL,
+            )
+        // Grimoire builds the callback as <GRIMOIRE_BASE_URL>/oidc/callback. If these drift from
+        // that variable in fleet-infra, sign-in fails at the redirect with a mismatch.
+        assertThat(client.redirectUris)
+            .containsExactlyInAnyOrder(
+                "https://grimoire.jorisjonkers.dev/oidc/callback",
+                "https://grimoire.jorisjonkers.test/oidc/callback",
+            )
+    }
+
+    @Test
+    fun `grimoire is registered only once a real secret is supplied`() {
+        assertThat(grimoireClientOrNull("s3cr3t-from-vault")?.clientId).isEqualTo("grimoire")
+        assertThat(grimoireClientOrNull("s3cr3t-from-vault")?.clientSecret).isEqualTo("{noop}s3cr3t-from-vault")
+        // No secret: nothing is registered, so there is never a client with a guessable one.
+        assertThat(grimoireClientOrNull("")).isNull()
+        assertThat(grimoireClientOrNull("   ")).isNull()
+        // What the Vault template renders for a key that is not provisioned yet.
+        assertThat(grimoireClientOrNull("<no value>")).isNull()
+    }
 }

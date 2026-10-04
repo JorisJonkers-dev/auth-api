@@ -566,6 +566,11 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
         assertThat(tribeltClient.clientSettings.isRequireProofKey).isTrue()
         assertThat(tribeltClient.scopes).contains(OidcScopes.OPENID, OidcScopes.PROFILE, OidcScopes.EMAIL)
 
+        val grimoireClient = registeredClientRepository.findByClientId("grimoire")
+        assertThat(grimoireClient).isNotNull()
+        assertThat(grimoireClient!!.redirectUris).contains("https://grimoire.jorisjonkers.test/oidc/callback")
+        assertThat(grimoireClient.clientSettings.isRequireProofKey).isTrue()
+
         assertThat(rabbitMqClient).isNotNull()
         assertThat(rabbitMqClient!!.redirectUris).contains(RABBITMQ_REDIRECT_URI)
         assertThat(rabbitMqClient.clientAuthenticationMethods).contains(ClientAuthenticationMethod.NONE)
