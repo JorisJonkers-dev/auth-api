@@ -18,7 +18,7 @@ jobs:
     runs-on: 'ubuntu-latest'
     timeout-minutes: 30
     steps:
-      - uses: 'actions/checkout@v6'
+      - uses: 'actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803' # v6.1.0
 
       - name: 'Download actionlint'
         id: 'actionlint'
@@ -71,14 +71,14 @@ jobs:
       packages: 'write'
       id-token: 'write'
     steps:
-      - uses: 'actions/checkout@v6'
+      - uses: 'actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803' # v6.1.0
 
-      - uses: 'actions/setup-java@v5'
+      - uses: 'actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961' # v5.7.0
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '21.0.12+8.0.LTS'
 
-      - uses: 'gradle/actions/setup-gradle@v6'
+      - uses: 'gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6' # v6.4.0
 
       - name: 'Export OpenAPI spec'
         env:
@@ -122,6 +122,6 @@ jobs:
       - 'migration-guard'
     if: '${{ always() }}'
     steps:
-      - uses: 're-actors/alls-green@release/v1'
+      - uses: 're-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35' # release/v1
         with:
           jobs: '${{ toJSON(needs) }}'
