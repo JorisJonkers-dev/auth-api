@@ -154,7 +154,7 @@ class AuthVerificationControllerTest {
         val user = buildUserWithUuid(roles = listOf("ROLE_USER", "SERVICE_MEMORY_API"))
         val request = MockHttpServletRequest()
 
-        val response = controller.verify(user, request, "memory-api.jorisjonkers.dev")
+        val response = controller.verify(user, request, "hindsight-api.jorisjonkers.dev")
 
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(request.getSession(false)).isNull()

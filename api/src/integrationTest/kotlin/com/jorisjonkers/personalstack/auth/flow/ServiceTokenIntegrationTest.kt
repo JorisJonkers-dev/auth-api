@@ -123,7 +123,7 @@ class ServiceTokenIntegrationTest : IntegrationTestBase() {
         mockMvc
             .get("/api/v1/auth/verify") {
                 header("Authorization", "Bearer $token")
-                header("X-Forwarded-Host", "memory-api.jorisjonkers.dev")
+                header("X-Forwarded-Host", "hindsight-api.jorisjonkers.dev")
             }.andExpect {
                 status { isOk() }
                 header { string("X-User-Roles", "SERVICE_MEMORY_API") }
@@ -198,7 +198,7 @@ class ServiceTokenIntegrationTest : IntegrationTestBase() {
         mockMvc
             .get("/api/v1/auth/verify") {
                 header("Authorization", "Bearer $token")
-                header("X-Forwarded-Host", "memory-api.jorisjonkers.dev")
+                header("X-Forwarded-Host", "hindsight-api.jorisjonkers.dev")
             }.andExpect {
                 status { is3xxRedirection() }
             }
@@ -229,7 +229,7 @@ class ServiceTokenIntegrationTest : IntegrationTestBase() {
         mockMvc
             .get("/api/v1/auth/verify") {
                 header("Authorization", "Bearer $token")
-                header("X-Forwarded-Host", "memory-api.jorisjonkers.dev")
+                header("X-Forwarded-Host", "hindsight-api.jorisjonkers.dev")
             }.andExpect { status { isOk() } }
     }
 

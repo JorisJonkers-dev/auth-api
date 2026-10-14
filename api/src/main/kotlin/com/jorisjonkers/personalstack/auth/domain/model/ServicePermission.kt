@@ -87,11 +87,12 @@ enum class ServicePermission(
     // before anyone relies on it.
     OVERLEAF("overleaf"),
 
-    // memory-api.jorisjonkers.dev (Hindsight API) and memory-mcp.jorisjonkers.dev
-    // (Basic Memory MCP over SSE), both behind forward-auth. Headless CLI/agent
-    // access to these two hosts is via a service_tokens bearer credential scoped
-    // to exactly one of these permissions -- see ServiceTokenController.
-    MEMORY_API("memory-api"),
+    // Hindsight (hindsight.* UI, hindsight-api.* API) and memory-mcp.jorisjonkers.dev
+    // (Basic Memory MCP), all behind forward-auth. Headless CLI/agent access is via a
+    // service_tokens bearer credential scoped to exactly one of these permissions --
+    // see ServiceTokenController. The UI host is mapped too, so memories are not
+    // readable by every authenticated user.
+    MEMORY_API("hindsight", "hindsight-api"),
     MEMORY_MCP("memory-mcp"),
 
     // Own OIDC flow on an anonymous public route; the grant is enforced at the authorize endpoint.
