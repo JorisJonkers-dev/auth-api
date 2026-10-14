@@ -44,6 +44,9 @@ class ServicePermissionTest {
         "tribelt.jorisjonkers.test, TRIBELT",
         "grimoire.jorisjonkers.dev, GRIMOIRE",
         "grimoire.jorisjonkers.test, GRIMOIRE",
+        "hindsight.jorisjonkers.dev, MEMORY_API",
+        "hindsight-api.jorisjonkers.dev, MEMORY_API",
+        "memory-mcp.jorisjonkers.dev, MEMORY_MCP",
     )
     fun `fromHost resolves production and local dev hostnames`(
         host: String,
