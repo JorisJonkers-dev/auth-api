@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.14.0...v0.15.0) (2026-10-14)
+
+
+### Features
+
+* **auth:** map the hindsight hosts to MEMORY_API ([#90](https://github.com/JorisJonkers-dev/auth-api/issues/90)) ([6f3ad02](https://github.com/JorisJonkers-dev/auth-api/commit/6f3ad02ed5f068a4b80e8972a1352b3594b2b5a9))
+
 ## [0.14.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.13.0...v0.14.0) (2026-10-04)
 
 
