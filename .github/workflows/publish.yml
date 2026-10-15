@@ -2,6 +2,7 @@
 #
 # push of a v*.*.* tag (authored by release.yml via the App token) drives:
 #   publish-image -> resolve-image-lock -> publish-deploy-artifact -> register-service
+#                                       -> fragment (the estate path)
 #
 # Boundary rule (R1-2): the image lock crosses the reusable-workflow boundary
 # as an UPLOADED ARTIFACT (image-lock-artifact), never as a runner-local path.
@@ -44,6 +45,7 @@ jobs:
       packages: read
     outputs:
       images-lock-artifact: images-lock-${{ github.run_id }}
+      fragment-images-lock-artifact: fragment-images-lock-${{ github.run_id }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -98,6 +100,67 @@ jobs:
           path: platform/images.lock.json
           retention-days: 1
 
+      - name: lock-fragment-images
+        # The estate path's images lock: this release's auth-api, and the
+        # auth-ui of auth-ui's latest release, since the two are one
+        # Application (deploy/auth.project.yml). Each with the numeric user it
+        # runs as, read back from what was pushed rather than assumed
+        # (deploy-kit spec/v1/20-resolved-deployment.md#the-images-lock). An
+        # image that names no user runs as root, 0, as both do today.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          API_IMAGE: ghcr.io/jorisjonkers-dev/auth-api/auth-api
+          API_DIGEST: ${{ steps.digest.outputs.image-digest }}
+          UI_IMAGE: ghcr.io/jorisjonkers-dev/auth-ui
+        run: |
+          set -euo pipefail
+          # user <image@digest>: the uid:gid it runs as.
+          user() {
+            local named
+            named="$(docker buildx imagetools inspect "$1" --format '{{ json .Image }}' \
+              | jq -r 'if has("linux/amd64") then .["linux/amd64"] else . end | .config.User // ""')"
+            case "$named" in
+              ""|root|0) echo "0:0" ;;
+              *[!0-9:]*) echo "::error::$1 runs as '${named}', not a numeric uid[:gid]" >&2; return 1 ;;
+              *:*) echo "$named" ;;
+              *) echo "${named}:${named}" ;;
+            esac
+          }
+          ui_tag="$(gh release view --repo JorisJonkers-dev/auth-ui --json tagName --jq .tagName)"
+          ui_digest="$(docker buildx imagetools inspect "${UI_IMAGE}:${ui_tag}" --format '{{json .Manifest}}' | jq -r '.digest')"
+          case "$ui_digest" in
+            sha256:*) ;;
+            *) echo "E_FLOATING_IMAGE: could not resolve a digest for ${UI_IMAGE}:${ui_tag}" >&2; exit 1 ;;
+          esac
+          api_user="$(user "${API_IMAGE}@${API_DIGEST}")"
+          ui_user="$(user "${UI_IMAGE}@${ui_digest}")"
+          cat > images.lock.yml <<LOCK
+          apiVersion: lock.jorisjonkers.dev/v1
+          kind: ImagesLock
+          schemaVersion: 1.0.0
+          name: auth
+          images:
+            auth-api:
+              repository: ${API_IMAGE}
+              digest: "${API_DIGEST}"
+              uid: ${api_user%%:*}
+              gid: ${api_user##*:}
+            auth-ui:
+              repository: ${UI_IMAGE}
+              digest: "${ui_digest}"
+              uid: ${ui_user%%:*}
+              gid: ${ui_user##*:}
+          LOCK
+          echo "auth-ui ${ui_tag}" >> "$GITHUB_STEP_SUMMARY"
+          cat images.lock.yml >> "$GITHUB_STEP_SUMMARY"
+
+      - name: upload-fragment-image-lock
+        uses: actions/upload-artifact@v5
+        with:
+          name: fragment-images-lock-${{ github.run_id }}
+          path: images.lock.yml
+          retention-days: 1
+
   # -- 3. Render and publish the deploy artifact ----------------------------
   publish-deploy-artifact:
     needs: [resolve-image-lock]
@@ -118,7 +181,34 @@ jobs:
       id-token: write
       attestations: write
 
-  # -- 4. Tell fleet-infra the image exists ---------------------------------
+  # -- 4. Publish the Intent Fragment and start composition ------------------
+  # The project file, packed with this release's share of the images lock,
+  # pushed, signed keyless and verified, then composition dispatched in
+  # JorisJonkers-dev/estate (deploy-kit spec/v1/40-composition.md#fragments).
+  # `auth` is still delivered by fleet-infra: the estate composes the fragment
+  # and delivers nothing for it. It is validated beside the fragments of the
+  # Applications it depends on, `data` and `mail`.
+  #
+  # A tag push only: a dispatch re-runs an older tag, whose tree may hold no
+  # project file, and the fragment names the commit its images were built from.
+  fragment:
+    needs: [resolve-image-lock]
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/publish-fragment.yml@ab37076d4f445f1b7705b4f9d5d9821e2b38c9c0 # v0.21.0
+    with:
+      project-file: deploy/auth.project.yml
+      version: ${{ github.ref_name }}
+      toolkit-directory: deploy
+      validate-with-fragments: data mail
+      images-lock-artifact: ${{ needs.resolve-image-lock.outputs.fragment-images-lock-artifact }}
+    secrets:
+      ESTATE_DISPATCH_APP_PRIVATE_KEY: ${{ secrets.ESTATE_DISPATCH_APP_PRIVATE_KEY }}
+
+  # -- 5. Tell fleet-infra the image exists ---------------------------------
   #
   # auto-bump-first-party-images.yml brings the pins in cluster/flux up to the
   # newest published tag. It accepts this dispatch precisely so a service does
