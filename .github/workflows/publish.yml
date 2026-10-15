@@ -186,8 +186,10 @@ jobs:
   # pushed, signed keyless and verified, then composition dispatched in
   # JorisJonkers-dev/estate (deploy-kit spec/v1/40-composition.md#fragments).
   # `auth` is still delivered by fleet-infra: the estate composes the fragment
-  # and delivers nothing for it. It is validated beside the fragments of the
-  # Applications it depends on, `data` and `mail`.
+  # and delivers nothing for it. It is validated alone: `data` and `mail`, what
+  # it depends on, publish from the private estate repository, so their
+  # fragments are packages this repository's token cannot read. Composition
+  # checks every edge against them.
   #
   # A tag push only: a dispatch re-runs an older tag, whose tree may hold no
   # project file, and the fragment names the commit its images were built from.
@@ -203,7 +205,6 @@ jobs:
       project-file: deploy/auth.project.yml
       version: ${{ github.ref_name }}
       toolkit-directory: deploy
-      validate-with-fragments: data mail
       images-lock-artifact: ${{ needs.resolve-image-lock.outputs.fragment-images-lock-artifact }}
     secrets:
       ESTATE_DISPATCH_APP_PRIVATE_KEY: ${{ secrets.ESTATE_DISPATCH_APP_PRIVATE_KEY }}
