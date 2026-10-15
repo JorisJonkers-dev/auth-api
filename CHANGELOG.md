@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.16.0...v0.17.0) (2026-10-15)
+
+
+### Features
+
+* publish the auth Intent Fragment as a legacy participant ([#97](https://github.com/JorisJonkers-dev/auth-api/issues/97)) ([e1fc637](https://github.com/JorisJonkers-dev/auth-api/commit/e1fc6375dd6baa6fa33a1c2cc778ffd696a38603)), closes [#96](https://github.com/JorisJonkers-dev/auth-api/issues/96)
+
 ## [0.16.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.15.0...v0.16.0) (2026-10-15)
 
 
