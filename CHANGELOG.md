@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.17.0...v0.17.1) (2026-10-15)
+
+
+### Bug Fixes
+
+* validate the auth fragment alone ([#99](https://github.com/JorisJonkers-dev/auth-api/issues/99)) ([b9a9023](https://github.com/JorisJonkers-dev/auth-api/commit/b9a9023dee793351f9e764d16db8bbe9ea66abf7)), closes [#96](https://github.com/JorisJonkers-dev/auth-api/issues/96)
+
 ## [0.17.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.16.0...v0.17.0) (2026-10-15)
 
 
