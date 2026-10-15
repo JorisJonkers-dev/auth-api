@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.15.0...v0.16.0) (2026-10-15)
+
+
+### Features
+
+* **auth:** add MEMORY_PRIVATE for the private Hindsight bank and gate the UI with it ([#92](https://github.com/JorisJonkers-dev/auth-api/issues/92)) ([d03daeb](https://github.com/JorisJonkers-dev/auth-api/commit/d03daeb030b5a4ec4024249d5551ff5454f30650))
+
 ## [0.15.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.14.0...v0.15.0) (2026-10-14)
 
 
