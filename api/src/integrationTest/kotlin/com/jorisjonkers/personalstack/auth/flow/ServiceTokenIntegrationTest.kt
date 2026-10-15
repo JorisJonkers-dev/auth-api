@@ -139,6 +139,45 @@ class ServiceTokenIntegrationTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `private token authorizes only the private host`() {
+        userRepository.saveServicePermissions(testUser.id, setOf(ServicePermission.MEMORY_PRIVATE))
+        val token = mintToken(testUser.id, "MEMORY_PRIVATE", "laptop")
+
+        mockMvc
+            .get("/api/v1/auth/verify") {
+                header("Authorization", "Bearer $token")
+                header("X-Forwarded-Host", "hindsight-private.jorisjonkers.dev")
+            }.andExpect {
+                status { isOk() }
+                header { string("X-User-Roles", "SERVICE_MEMORY_PRIVATE") }
+            }
+
+        mockMvc
+            .get("/api/v1/auth/verify") {
+                header("Authorization", "Bearer $token")
+                header("X-Forwarded-Host", "hindsight-api.jorisjonkers.dev")
+            }.andExpect {
+                status { isForbidden() }
+            }
+    }
+
+    @Test
+    fun `shared memory token is refused on the private host and the UI`() {
+        userRepository.saveServicePermissions(testUser.id, setOf(ServicePermission.MEMORY_API))
+        val token = mintToken(testUser.id, "MEMORY_API", "laptop")
+
+        listOf("hindsight-private.jorisjonkers.dev", "hindsight.jorisjonkers.dev").forEach { host ->
+            mockMvc
+                .get("/api/v1/auth/verify") {
+                    header("Authorization", "Bearer $token")
+                    header("X-Forwarded-Host", host)
+                }.andExpect {
+                    status { isForbidden() }
+                }
+        }
+    }
+
+    @Test
     fun `minted token is rejected on a host with no ServicePermission mapping`() {
         userRepository.saveServicePermissions(testUser.id, setOf(ServicePermission.MEMORY_API))
         val token = mintToken(testUser.id, "MEMORY_API", "laptop")

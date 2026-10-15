@@ -157,6 +157,28 @@ class ForwardAuthIntegrationTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `the Hindsight UI needs the private grant, not the shared one`() {
+        listOf(listOf("ROLE_USER", "SERVICE_MEMORY_API") to false, listOf("ROLE_USER", "SERVICE_MEMORY_PRIVATE") to true)
+            .forEach { (roles, allowed) ->
+                mockMvc
+                    .get("/api/v1/auth/verify") {
+                        with(
+                            user(
+                                AuthenticatedUser.of(
+                                    userId = UserId(UUID.randomUUID()),
+                                    username = "user-memory",
+                                    roles = roles,
+                                ),
+                            ),
+                        )
+                        header("X-Forwarded-Host", "hindsight.jorisjonkers.dev")
+                    }.andExpect {
+                        status { if (allowed) isOk() else isForbidden() }
+                    }
+            }
+    }
+
+    @Test
     fun `authenticated request without X-Forwarded-Host returns 200`() {
         mockMvc
             .get("/api/v1/auth/verify") {

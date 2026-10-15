@@ -44,7 +44,8 @@ class ServicePermissionTest {
         "tribelt.jorisjonkers.test, TRIBELT",
         "grimoire.jorisjonkers.dev, GRIMOIRE",
         "grimoire.jorisjonkers.test, GRIMOIRE",
-        "hindsight.jorisjonkers.dev, MEMORY_API",
+        "hindsight.jorisjonkers.dev, MEMORY_PRIVATE",
+        "hindsight-private.jorisjonkers.dev, MEMORY_PRIVATE",
         "hindsight-api.jorisjonkers.dev, MEMORY_API",
         "memory-mcp.jorisjonkers.dev, MEMORY_MCP",
     )
