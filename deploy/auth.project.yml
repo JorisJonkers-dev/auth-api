@@ -1,0 +1,135 @@
+# deploy-kit Project Intent for auth: the API in this repository and the sign-in UI in
+# JorisJonkers-dev/auth-ui, one Application, because a new UI against an old API is a broken
+# product (deploy-kit spec/v1/examples/auth/auth.project.yml).
+#
+# The Project is `auth`, so the namespace derives as `auth-system`, where both already run.
+# It is still `legacy` (JorisJonkers-dev/estate platform.intent.yml): fleet-infra delivers it,
+# and the estate composes this file without delivering anything for it. Its fragment exists so
+# a Project on the estate path can sign in through auth and name it in `dependsOn`
+# (deploy-kit spec/v1/60-setup.md#handing-over-one-project-at-a-time). The handover revisits
+# every field here against the rendered diff.
+#
+# Each value below is read from the live objects. No env file: the old path still configures
+# both Processes, and nothing on the estate path renders them yet.
+
+apiVersion: intent.jorisjonkers.dev/v1
+kind: Project
+schemaVersion: 1.0.0
+
+project: auth # the namespace derives: auth-system
+owner: joris
+
+applications:
+  - id: auth
+    # Flyway applies the schema when auth-api starts (api/src/main/resources/db/migration).
+    migration: self
+
+    observability:
+      alertClass: page # every forward-auth route depends on it
+      scrape:
+        process: auth-api
+        surface: http
+        path: /api/actuator/prometheus
+
+    exposure:
+      - name: public
+        host: auth.jorisjonkers.dev
+        audience: anonymous # the sign-in page cannot sit behind the sign-in it starts
+        routes:
+          - { path: /api/, match: prefix, process: auth-api, surface: http }
+          - { path: /.well-known/, match: prefix, process: auth-api, surface: http }
+          - { path: /, match: prefix, process: auth-ui, surface: http }
+
+    processes:
+      - name: auth-api
+        lifecycle: application
+        image: auth-api # an alias; the lock resolves digest, uid and gid
+        runtime: jvm
+
+        provides:
+          http: 8081
+
+        # The live pods request 2Gi and are limited at 4Gi; the model sets request to limit.
+        placement:
+          memory: 4Gi
+          cpu: 400m
+
+        writablePaths: [/tmp]
+
+        dependsOn:
+          - { application: platform-postgres, surface: postgres }
+          - { application: platform-valkey, surface: redis }
+          - { application: platform-rabbitmq, surface: amqp }
+          - { application: stalwart, surface: submission } # confirmation and reset mail
+
+        probes:
+          readiness: { path: /api/actuator/health/readiness, port: 8081 }
+          liveness: { path: /api/actuator/health/liveness, port: 8081 }
+
+        startupBudget: 600s # the live startup probe allows 120 checks 5s apart
+
+        cutover: continuous
+
+        replicas:
+          count: 2
+          reason: >-
+            Every signed-in route and every OIDC client waits on this Process, so a second pod
+            keeps sign-in up while one restarts.
+
+        # Each OIDC client's secret, the submission account's password, the login of its
+        # database and of RabbitMQ, and the transit key its tokens are signed with.
+        secrets:
+          - path: secret/data/auth-api
+            keys:
+              - auth.clients.estate-dashboard.secret
+              - auth.clients.grafana.secret
+              - auth.clients.grimoire.secret
+              - auth.clients.n8n.secret
+              - auth.clients.outline.secret
+              - auth.clients.tribelt.secret
+              - auth.clients.vault.secret
+            access: read
+            delivery: env
+            rotation: { tolerates: restart }
+          - path: secret/data/platform/mail
+            keys: [account.password]
+            access: read
+            delivery: env
+            rotation: { tolerates: restart }
+          - path: secret/data/platform/postgres
+            keys: [auth.user, auth.password]
+            access: read
+            delivery: env
+            rotation: { tolerates: restart }
+          - path: secret/data/platform/rabbitmq
+            keys: [rabbitmq.user, rabbitmq.password]
+            access: read
+            delivery: env
+            rotation: { tolerates: restart }
+          - engine: transit
+            key: auth-api-jwt
+            operations: [sign]
+            delivery: self
+            rotation: { tolerates: reload }
+
+      - name: auth-ui
+        lifecycle: application
+        image: auth-ui # built in JorisJonkers-dev/auth-ui
+        runtime: static
+
+        provides:
+          http: 80
+
+        placement:
+          memory: 192Mi
+          cpu: 100m
+
+        writablePaths: [/var/cache/nginx, /var/run]
+
+        probes:
+          readiness: { path: /, port: 80 }
+          liveness: { path: /, port: 80 }
+
+        startupBudget: 30s
+
+        cutover: continuous
