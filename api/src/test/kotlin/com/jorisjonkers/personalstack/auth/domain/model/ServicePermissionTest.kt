@@ -32,8 +32,6 @@ class ServicePermissionTest {
         "adguard.jorisjonkers.dev, ADGUARD",
         "wolf.jorisjonkers.dev, WOLF",
         "wolf.jorisjonkers.test, WOLF",
-        "kb.jorisjonkers.dev, KNOWLEDGE_API",
-        "kb.jorisjonkers.test, KNOWLEDGE_API",
         "notes.jorisjonkers.dev, NOTES",
         "notes.jorisjonkers.test, NOTES",
         "hermes.jorisjonkers.dev, HERMES",
@@ -61,6 +59,11 @@ class ServicePermissionTest {
     @Test
     fun `fromHost returns null for unknown host`() {
         assertThat(ServicePermission.fromHost("unknown.jorisjonkers.dev")).isNull()
+    }
+
+    @Test
+    fun `fromHost no longer maps the retired knowledge base host`() {
+        assertThat(ServicePermission.fromHost("kb.jorisjonkers.dev")).isNull()
     }
 
     @Test

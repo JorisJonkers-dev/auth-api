@@ -19,6 +19,7 @@ import org.jooq.impl.DefaultExecuteListenerProvider
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.cache.CacheManager
+import org.springframework.data.redis.core.StringRedisTemplate
 import java.time.Instant
 import java.util.UUID
 
@@ -34,6 +35,9 @@ class JooqUserRepositoryIntegrationTest : IntegrationTestBase() {
 
     @Autowired
     private lateinit var cacheManager: CacheManager
+
+    @Autowired
+    private lateinit var redis: StringRedisTemplate
 
     @Test
     fun `create and findByUsername returns the saved user`() {
@@ -206,6 +210,23 @@ class JooqUserRepositoryIntegrationTest : IntegrationTestBase() {
         // interact with other tests.
         cacheManager.getCache(CACHE_USERS_BY_ID)?.evict(user.id.value)
         cacheManager.getCache(CACHE_USERS_BY_USERNAME)?.evict("cache-hit")
+    }
+
+    @Test
+    fun `a cached user naming a retired permission is reloaded from the database`() {
+        val user = buildUser(username = "retired-grant", email = "retired-grant@example.com")
+        userRepository.create(user, "\$2a\$10\$hash")
+        userRepository.saveServicePermissions(user.id, setOf(ServicePermission.VAULT))
+        assertThat(userRepository.findByUsername("retired-grant")).isNotNull
+
+        val key = "$CACHE_USERS_BY_USERNAME::retired-grant"
+        val cached = redis.opsForValue().get(key)!!
+        redis.opsForValue().set(key, cached.replace("\"VAULT\"", "\"RETIRED_SERVICE\""))
+
+        val found = userRepository.findByUsername("retired-grant")
+
+        assertThat(found!!.servicePermissions).containsExactly(ServicePermission.VAULT)
+        assertThat(redis.opsForValue().get(key)).doesNotContain("RETIRED_SERVICE")
     }
 
     @Test

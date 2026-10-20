@@ -1,7 +1,9 @@
 package com.jorisjonkers.personalstack.auth.config
 
 import com.jorisjonkers.personalstack.auth.domain.model.User
+import org.springframework.cache.annotation.CachingConfigurer
 import org.springframework.cache.annotation.EnableCaching
+import org.springframework.cache.interceptor.CacheErrorHandler
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.cache.RedisCacheConfiguration
@@ -24,7 +26,9 @@ import java.time.Duration
  */
 @Configuration
 @EnableCaching
-class CacheConfig {
+class CacheConfig : CachingConfigurer {
+    override fun errorHandler(): CacheErrorHandler = UnreadableCacheEntryTolerantErrorHandler()
+
     @Bean
     fun cacheManager(connectionFactory: RedisConnectionFactory): RedisCacheManager {
         val mapper = buildObjectMapper()
