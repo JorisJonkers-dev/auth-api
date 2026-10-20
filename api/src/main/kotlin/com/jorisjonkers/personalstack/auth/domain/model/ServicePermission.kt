@@ -47,12 +47,6 @@ enum class ServicePermission(
     // Moonlight gameplay traffic connects directly to the GTX node.
     WOLF("wolf"),
 
-    // knowledge-api Kotlin/Spring service at kb.jorisjonkers.dev. Phase 4a
-    // ships the actuator-only skeleton; the MCP transport + tools land in
-    // stacked follow-ups (4b adds /mcp + bearer-bypass middleware, 4c adds
-    // the actual recall/lesson/decision tools).
-    KNOWLEDGE_API("kb"),
-
     // Outline wiki at notes.jorisjonkers.dev. Outline runs its own OIDC flow, so the
     // route is `direct` rather than forward-auth protected — the grant is enforced at
     // the authorization endpoint instead, via DOWNSTREAM_CLIENT_PERMISSIONS, exactly
