@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.2](https://github.com/JorisJonkers-dev/auth-api/compare/v0.17.1...v0.17.2) (2026-10-20)
+
+
+### Bug Fixes
+
+* drop the retired KNOWLEDGE_API permission ([#105](https://github.com/JorisJonkers-dev/auth-api/issues/105)) ([967e831](https://github.com/JorisJonkers-dev/auth-api/commit/967e8310d87aa7e1be5396521ebce47db6eaac6b))
+
 ## [0.17.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.17.0...v0.17.1) (2026-10-15)
 
 
