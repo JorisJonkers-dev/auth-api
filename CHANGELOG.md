@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.17.2...v0.18.0) (2026-10-21)
+
+
+### Features
+
+* the images lock records each image's software version ([#107](https://github.com/JorisJonkers-dev/auth-api/issues/107)) ([a661c3b](https://github.com/JorisJonkers-dev/auth-api/commit/a661c3bb0dc31c6d1ef1ffc946dd1a740862c8ab))
+
 ## [0.17.2](https://github.com/JorisJonkers-dev/auth-api/compare/v0.17.1...v0.17.2) (2026-10-20)
 
 
