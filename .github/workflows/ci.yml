@@ -30,7 +30,7 @@ jobs:
         run: '${{ steps.actionlint.outputs.executable }} -color .github/workflows/*.yml'
 
   jvm:
-    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@v0.14.1'
+    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@583993e5865cd5b8761fe52db5843130fb107c51' # v0.34.2
     with:
       lint-gradle-args: ':api:detektMain :api:detektTest :api:detektIntegrationTest :api:ktlintCheck'
       test-gradle-args: >-
@@ -43,7 +43,7 @@ jobs:
 
   client-dry-run:
     name: 'Client Dry Run'
-    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/publish-api-clients.yml@v0.14.1'
+    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/publish-api-clients.yml@583993e5865cd5b8761fe52db5843130fb107c51' # v0.34.2
     permissions:
       contents: 'read'
       packages: 'write'
@@ -92,7 +92,7 @@ jobs:
   docker:
     needs:
       - 'jvm'
-    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/docker-image-ci.yml@v0.14.1'
+    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/docker-image-ci.yml@583993e5865cd5b8761fe52db5843130fb107c51' # v0.34.2
     with:
       image-name: 'auth-api/auth-api'
       context: '.'
@@ -103,7 +103,7 @@ jobs:
       packages-token: '${{ secrets.GITHUB_TOKEN }}'
 
   migration-guard:
-    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/migration-guard.yml@v0.14.1'
+    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/migration-guard.yml@583993e5865cd5b8761fe52db5843130fb107c51' # v0.34.2
     with:
       base-ref: '${{ github.head_ref == ''feat/migrate-jorisjonkers'' && github.event.pull_request.head.sha || '''' }}'
       migration-regex: '^api/src/main/resources/db/migration/V[0-9]+(?:_[0-9]+)*__[^/]+\.sql$'
