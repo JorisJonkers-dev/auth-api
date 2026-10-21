@@ -26,7 +26,7 @@ permissions: {}
 jobs:
   # -- 1. Build and push the container image --------------------------------
   publish-image:
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/container-publish.yml@6d4af5313cc39386fff796fa89ea940ef5f0819d # v0.16.1
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/container-publish.yml@870429202376dac2e9434746941c54f9a2be605f # v0.33.0
     with:
       platforms: linux/amd64,linux/arm64
       image-name: auth-api/auth-api
@@ -106,12 +106,15 @@ jobs:
         # Application (deploy/auth.project.yml). Each with the numeric user it
         # runs as, read back from what was pushed rather than assumed
         # (deploy-kit spec/v1/20-resolved-deployment.md#the-images-lock). An
-        # image that names no user runs as root, 0, as both do today.
+        # image that names no user runs as root, 0, as both do today, which the
+        # shared resolve-image-lock step refuses, so this lock stays here. Each
+        # entry's version is its own release's (JorisJonkers-dev/workspace#140).
         env:
           GH_TOKEN: ${{ github.token }}
           API_IMAGE: ghcr.io/jorisjonkers-dev/auth-api/auth-api
           API_DIGEST: ${{ steps.digest.outputs.image-digest }}
           UI_IMAGE: ghcr.io/jorisjonkers-dev/auth-ui
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
         run: |
           set -euo pipefail
           # user <image@digest>: the uid:gid it runs as.
@@ -145,11 +148,13 @@ jobs:
               digest: "${API_DIGEST}"
               uid: ${api_user%%:*}
               gid: ${api_user##*:}
+              version: "${TAG#v}"
             auth-ui:
               repository: ${UI_IMAGE}
               digest: "${ui_digest}"
               uid: ${ui_user%%:*}
               gid: ${ui_user##*:}
+              version: "${ui_tag#v}"
           LOCK
           echo "auth-ui ${ui_tag}" >> "$GITHUB_STEP_SUMMARY"
           cat images.lock.yml >> "$GITHUB_STEP_SUMMARY"
@@ -200,7 +205,7 @@ jobs:
       contents: read
       packages: write
       id-token: write
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/publish-fragment.yml@8637ee1224dfefd807d9b8be616eeb59f94ba126 # v0.23.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/publish-fragment.yml@79e57122f7ed1fb442c90a7487f861c5d1465ec6 # v0.34.0
     with:
       project-file: deploy/auth.project.yml
       version: ${{ github.ref_name }}
