@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.18.0...v0.19.0) (2026-10-23)
+
+
+### Features
+
+* **auth:** register the Findability Explorer as an OIDC client ([#111](https://github.com/JorisJonkers-dev/auth-api/issues/111)) ([9b7f07e](https://github.com/JorisJonkers-dev/auth-api/commit/9b7f07e25e8310babf34f18edc46de103c1987e0))
+
 ## [0.18.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.17.2...v0.18.0) (2026-10-21)
 
 
