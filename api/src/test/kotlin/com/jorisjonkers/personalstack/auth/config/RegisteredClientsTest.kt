@@ -191,4 +191,54 @@ class RegisteredClientsTest {
         // What the Vault template renders for a key that is not provisioned yet.
         assertThat(grimoireClientOrNull("<no value>")).isNull()
     }
+
+    @Test
+    fun `findability-explorer is a confidential PKCE client whose redirect matches the explorer callback`() {
+        val client = buildFindabilityExplorerClient("findability-explorer-test-secret")
+
+        assertThat(client.id).isEqualTo(UUID.nameUUIDFromBytes("findability-explorer".toByteArray()).toString())
+        assertThat(client.clientId).isEqualTo("findability-explorer")
+        assertThat(client.clientSecret).isEqualTo("{noop}findability-explorer-test-secret")
+        assertThat(client.clientAuthenticationMethods)
+            .containsExactlyInAnyOrder(
+                ClientAuthenticationMethod.CLIENT_SECRET_BASIC,
+                ClientAuthenticationMethod.CLIENT_SECRET_POST,
+            )
+        assertThat(client.clientSettings.isRequireProofKey).isTrue
+        assertThat(client.clientSettings.isRequireAuthorizationConsent).isFalse
+        assertThat(client.authorizationGrantTypes)
+            .containsExactlyInAnyOrder(
+                AuthorizationGrantType.AUTHORIZATION_CODE,
+                AuthorizationGrantType.REFRESH_TOKEN,
+            )
+        assertThat(client.scopes)
+            .containsExactlyInAnyOrder(
+                OidcScopes.OPENID,
+                OidcScopes.PROFILE,
+                OidcScopes.EMAIL,
+            )
+        assertThat(client.redirectUris)
+            .containsExactlyInAnyOrder(
+                "https://digital-strategy.jorisjonkers.dev/auth/callback",
+                "https://digital-strategy.jorisjonkers.test/auth/callback",
+            )
+        assertThat(client.postLogoutRedirectUris)
+            .containsExactlyInAnyOrder(
+                "https://digital-strategy.jorisjonkers.dev/",
+                "https://digital-strategy.jorisjonkers.test/",
+            )
+        assertThat(client.tokenSettings.isReuseRefreshTokens).isFalse
+    }
+
+    @Test
+    fun `findability-explorer is registered only once a real secret is supplied`() {
+        assertThat(findabilityExplorerClientOrNull("s3cr3t-from-vault")?.clientId).isEqualTo("findability-explorer")
+        assertThat(findabilityExplorerClientOrNull("s3cr3t-from-vault")?.clientSecret)
+            .isEqualTo("{noop}s3cr3t-from-vault")
+        // No secret: nothing is registered, so there is never a client with a guessable one.
+        assertThat(findabilityExplorerClientOrNull("")).isNull()
+        assertThat(findabilityExplorerClientOrNull("   ")).isNull()
+        // What the Vault template renders for a key that is not provisioned yet.
+        assertThat(findabilityExplorerClientOrNull("<no value>")).isNull()
+    }
 }

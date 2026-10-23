@@ -82,6 +82,7 @@ applications:
           - path: secret/data/auth-api
             keys:
               - auth.clients.estate-dashboard.secret
+              - auth.clients.findability-explorer.secret
               - auth.clients.grafana.secret
               - auth.clients.grimoire.secret
               - auth.clients.n8n.secret

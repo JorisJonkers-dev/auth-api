@@ -101,6 +101,9 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
         private const val ESTATE_DASHBOARD_CLIENT_ID = "estate-dashboard"
         private const val ESTATE_DASHBOARD_REDIRECT_URI = "https://estate.jorisjonkers.test/auth/callback"
         private const val ESTATE_DASHBOARD_CLIENT_SECRET = "estate-dashboard-secret"
+        private const val FINDABILITY_EXPLORER_CLIENT_ID = "findability-explorer"
+        private const val FINDABILITY_EXPLORER_REDIRECT_URI = "https://digital-strategy.jorisjonkers.test/auth/callback"
+        private const val FINDABILITY_EXPLORER_CLIENT_SECRET = "findability-explorer-secret"
     }
 
     @BeforeEach
@@ -566,6 +569,15 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
         assertThat(tribeltClient.clientSettings.isRequireProofKey).isTrue()
         assertThat(tribeltClient.scopes).contains(OidcScopes.OPENID, OidcScopes.PROFILE, OidcScopes.EMAIL)
 
+        val findabilityExplorerClient = registeredClientRepository.findByClientId(FINDABILITY_EXPLORER_CLIENT_ID)
+        assertThat(findabilityExplorerClient).isNotNull()
+        assertThat(findabilityExplorerClient!!.redirectUris).contains(FINDABILITY_EXPLORER_REDIRECT_URI)
+        assertThat(findabilityExplorerClient.clientAuthenticationMethods)
+            .contains(ClientAuthenticationMethod.CLIENT_SECRET_BASIC, ClientAuthenticationMethod.CLIENT_SECRET_POST)
+        assertThat(findabilityExplorerClient.clientSettings.isRequireProofKey).isTrue()
+        assertThat(findabilityExplorerClient.authorizationGrantTypes).contains(AuthorizationGrantType.REFRESH_TOKEN)
+        assertThat(findabilityExplorerClient.scopes).contains(OidcScopes.OPENID, OidcScopes.PROFILE, OidcScopes.EMAIL)
+
         val grimoireClient = registeredClientRepository.findByClientId("grimoire")
         assertThat(grimoireClient).isNotNull()
         assertThat(grimoireClient!!.redirectUris).contains("https://grimoire.jorisjonkers.test/oidc/callback")
@@ -600,6 +612,7 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
                 Triple("n8n", N8N_REDIRECT_URI, "openid profile email"),
                 Triple("outline", OUTLINE_REDIRECT_URI, "openid profile email"),
                 Triple(TRIBELT_CLIENT_ID, TRIBELT_REDIRECT_URI, "openid profile email"),
+                Triple(FINDABILITY_EXPLORER_CLIENT_ID, FINDABILITY_EXPLORER_REDIRECT_URI, "openid profile email"),
                 Triple("rabbitmq", RABBITMQ_REDIRECT_URI, "openid profile email"),
                 Triple(HEADLAMP_CLIENT_ID, HEADLAMP_REDIRECT_URI, "openid profile email groups"),
             )
@@ -741,8 +754,9 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
         assertThat(decodedIdToken.getClaimAsStringList("roles")).contains("ROLE_USER", "SERVICE_TRIBELT")
     }
 
-    // Runs the estate dashboard's own sign-in: authorize with PKCE, then exchange the code with
-    // the client secret over client_secret_basic. Returns the token response.
+    // Runs a confidential PKCE client's own sign-in (the estate dashboard by default): authorize
+    // with PKCE, then exchange the code with the client secret over client_secret_basic. Returns
+    // the token response.
     //
     // The authorize parameters travel in the query string, not through MockMvc's param():
     // the authorization server reads a GET authorization request from the query string
@@ -750,18 +764,23 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
     // response_type" before the session is ever consulted. The param()-based tests above
     // accept that 400 and return early, so they never reach a code. A URI, not a template
     // string, so the already-encoded redirect_uri is not encoded a second time.
-    private fun signInToEstateDashboard(session: MockHttpSession): JsonNode {
+    private fun signInWithPkce(
+        session: MockHttpSession,
+        clientId: String = ESTATE_DASHBOARD_CLIENT_ID,
+        redirectUri: String = ESTATE_DASHBOARD_REDIRECT_URI,
+        clientSecret: String = ESTATE_DASHBOARD_CLIENT_SECRET,
+    ): JsonNode {
         val codeVerifier = generateCodeVerifier()
         val codeChallenge = generateCodeChallenge(codeVerifier)
         val query =
             mapOf(
                 "response_type" to "code",
-                "client_id" to ESTATE_DASHBOARD_CLIENT_ID,
-                "redirect_uri" to ESTATE_DASHBOARD_REDIRECT_URI,
+                "client_id" to clientId,
+                "redirect_uri" to redirectUri,
                 "scope" to "openid profile email",
                 "code_challenge" to codeChallenge,
                 "code_challenge_method" to "S256",
-                "state" to "estate-dashboard-sign-in",
+                "state" to "$clientId-sign-in",
             ).entries.joinToString("&") { (name, value) ->
                 // %20, not URLEncoder's form-style +: the server takes a + in the query
                 // string literally, and "openid+profile+email" is an invalid_scope.
@@ -779,23 +798,29 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
             .describedAs("authorize answered %s", authorizeResult.response.errorMessage)
             .isEqualTo(302)
         val location = authorizeResult.response.getHeader("Location")
-        assertThat(location).startsWith(ESTATE_DASHBOARD_REDIRECT_URI).contains("code=")
+        assertThat(location).startsWith(redirectUri).contains("code=")
         val code = location!!.substringAfter("code=").substringBefore("&")
 
-        return postEstateDashboardToken(
+        return postClientToken(
             "grant_type=authorization_code" +
                 "&code=${URLEncoder.encode(code, StandardCharsets.UTF_8)}" +
-                "&redirect_uri=${URLEncoder.encode(ESTATE_DASHBOARD_REDIRECT_URI, StandardCharsets.UTF_8)}" +
+                "&redirect_uri=${URLEncoder.encode(redirectUri, StandardCharsets.UTF_8)}" +
                 "&code_verifier=$codeVerifier",
+            clientId,
+            clientSecret,
         )
     }
 
-    private fun postEstateDashboardToken(form: String): JsonNode {
+    private fun postClientToken(
+        form: String,
+        clientId: String = ESTATE_DASHBOARD_CLIENT_ID,
+        clientSecret: String = ESTATE_DASHBOARD_CLIENT_SECRET,
+    ): JsonNode {
         val tokenResult =
             mockMvc
                 .post("/api/oauth2/token") {
                     contentType = MediaType.APPLICATION_FORM_URLENCODED
-                    with(httpBasic(ESTATE_DASHBOARD_CLIENT_ID, ESTATE_DASHBOARD_CLIENT_SECRET))
+                    with(httpBasic(clientId, clientSecret))
                     content = form
                 }.andExpect { status { isOk() } }
                 .andReturn()
@@ -814,7 +839,7 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
             .execute()
         val session = extractSession(doSessionLogin(username, password))!!
 
-        val tokenJson = signInToEstateDashboard(session)
+        val tokenJson = signInWithPkce(session)
 
         val idToken = jwtDecoder.decode(tokenJson["id_token"].asText())
         assertThat(idToken.audience).contains(ESTATE_DASHBOARD_CLIENT_ID)
@@ -824,7 +849,7 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
         // The dashboard renews its session through the token endpoint; the renewed ID token
         // must still carry the role its admin check reads.
         val refreshedJson =
-            postEstateDashboardToken(
+            postClientToken(
                 "grant_type=refresh_token" +
                     "&refresh_token=${URLEncoder.encode(tokenJson["refresh_token"].asText(), StandardCharsets.UTF_8)}",
             )
@@ -841,12 +866,76 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
 
         // No authorize-endpoint gate: the dashboard shows its own Not-an-admin page, so auth
         // must hand a non-admin a code and let the roles claim carry the refusal.
-        val tokenJson = signInToEstateDashboard(session)
+        val tokenJson = signInWithPkce(session)
 
         val idToken = jwtDecoder.decode(tokenJson["id_token"].asText())
         assertThat(idToken.getClaimAsStringList("roles"))
             .contains("ROLE_USER")
             .doesNotContain("ROLE_ADMIN")
+    }
+
+    private fun signInToFindabilityExplorer(session: MockHttpSession): JsonNode =
+        signInWithPkce(
+            session,
+            FINDABILITY_EXPLORER_CLIENT_ID,
+            FINDABILITY_EXPLORER_REDIRECT_URI,
+            FINDABILITY_EXPLORER_CLIENT_SECRET,
+        )
+
+    private fun refreshFindabilityExplorerToken(refreshToken: String): JsonNode =
+        postClientToken(
+            "grant_type=refresh_token&refresh_token=${URLEncoder.encode(refreshToken, StandardCharsets.UTF_8)}",
+            FINDABILITY_EXPLORER_CLIENT_ID,
+            FINDABILITY_EXPLORER_CLIENT_SECRET,
+        )
+
+    @Test
+    fun `findability explorer grantee signs in and a token renewal re-reads the roles claim`() {
+        val username = uniqueUsername()
+        val password = "securepass123"
+        registerAndConfirmUser(username, password)
+        grantServicePermission(username, ServicePermission.FINDABILITY_EXPLORER)
+        val session = extractSession(doSessionLogin(username, password))!!
+
+        val tokenJson = signInToFindabilityExplorer(session)
+
+        val idToken = jwtDecoder.decode(tokenJson["id_token"].asText())
+        assertThat(idToken.audience).contains(FINDABILITY_EXPLORER_CLIENT_ID)
+        assertThat(idToken.getClaimAsStringList("roles"))
+            .contains("ROLE_USER", "SERVICE_FINDABILITY_EXPLORER")
+            .doesNotContain("ROLE_ADMIN")
+        assertThat(tokenJson["refresh_token"]).isNotNull()
+
+        // The explorer renews its tokens on a short interval to pick up role changes: a promotion
+        // made after sign-in must show in the renewed ID token, without signing in again.
+        dsl
+            .update(APP_USER)
+            .set(APP_USER.ROLE, "ADMIN")
+            .where(APP_USER.USERNAME.eq(username))
+            .execute()
+        val refreshedJson = refreshFindabilityExplorerToken(tokenJson["refresh_token"].asText())
+        val refreshedIdToken = jwtDecoder.decode(refreshedJson["id_token"].asText())
+        assertThat(refreshedIdToken.getClaimAsStringList("roles"))
+            .contains("ROLE_ADMIN", "SERVICE_FINDABILITY_EXPLORER")
+        assertThat(refreshedJson["refresh_token"]).isNotNull()
+    }
+
+    @Test
+    fun `admin without an explicit grant signs in to the findability explorer`() {
+        val username = uniqueUsername()
+        val password = "securepass123"
+        registerAndConfirmUser(username, password)
+        dsl
+            .update(APP_USER)
+            .set(APP_USER.ROLE, "ADMIN")
+            .where(APP_USER.USERNAME.eq(username))
+            .execute()
+        val session = extractSession(doSessionLogin(username, password))!!
+
+        val tokenJson = signInToFindabilityExplorer(session)
+
+        val idToken = jwtDecoder.decode(tokenJson["id_token"].asText())
+        assertThat(idToken.getClaimAsStringList("roles")).contains("ROLE_ADMIN", "SERVICE_FINDABILITY_EXPLORER")
     }
 
     @Test
@@ -956,6 +1045,12 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
                     "openid profile email",
                     true,
                 ),
+                OidcClientRequest(
+                    FINDABILITY_EXPLORER_CLIENT_ID,
+                    FINDABILITY_EXPLORER_REDIRECT_URI,
+                    "openid profile email",
+                    true,
+                ),
             )
 
         requests.forEach { (clientId, redirectUri, scope, requiresPkce) ->
@@ -1016,6 +1111,12 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
                     TRIBELT_REDIRECT_URI,
                     "openid profile email",
                     TRIBELT_CLIENT_SECRET,
+                ),
+                ConfidentialClientRequest(
+                    FINDABILITY_EXPLORER_CLIENT_ID,
+                    FINDABILITY_EXPLORER_REDIRECT_URI,
+                    "openid profile email",
+                    FINDABILITY_EXPLORER_CLIENT_SECRET,
                 ),
             )
 

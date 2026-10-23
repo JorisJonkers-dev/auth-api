@@ -164,6 +164,9 @@ class AuthorizationServerConfig(
     fun registeredClientRepository(
         // No fallback: without a secret the grimoire client is not registered.
         @Value("\${auth.clients.grimoire.secret:}") grimoireSecret: String,
+        // No fallback either. Supplied as AUTH_CLIENTS_FINDABILITY_EXPLORER_SECRET; the
+        // dash-dropping AUTH_CLIENTS_FINDABILITYEXPLORER_SECRET does not resolve it.
+        @Value("\${auth.clients.findability-explorer.secret:}") findabilityExplorerSecret: String,
     ): RegisteredClientRepository =
         InMemoryRegisteredClientRepository(
             listOfNotNull(
@@ -182,6 +185,7 @@ class AuthorizationServerConfig(
                 buildTribeltClient(clientSecrets.tribelt),
                 buildEstateDashboardClient(clientSecrets.estateDashboard),
                 grimoireClientOrNull(grimoireSecret),
+                findabilityExplorerClientOrNull(findabilityExplorerSecret),
             ),
         )
 
@@ -320,6 +324,7 @@ class AuthorizationServerConfig(
                 // Grimoire also checks the grant in the roles claim; refusing here keeps a code
                 // from being issued to somebody without it.
                 "grimoire" to ServicePermission.GRIMOIRE,
+                "findability-explorer" to ServicePermission.FINDABILITY_EXPLORER,
             )
     }
 }

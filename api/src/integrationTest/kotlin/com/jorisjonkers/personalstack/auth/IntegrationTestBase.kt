@@ -61,6 +61,8 @@ abstract class IntegrationTestBase {
         fun configureProperties(registry: DynamicPropertyRegistry) {
             // The grimoire client has no fallback secret, so the tests supply one to register it.
             registry.add("auth.clients.grimoire.secret") { "grimoire-secret" }
+            // Nor does the findability-explorer client.
+            registry.add("auth.clients.findability-explorer.secret") { "findability-explorer-secret" }
             registry.add("spring.datasource.url") { postgres.jdbcUrl }
             registry.add("spring.datasource.username") { postgres.username }
             registry.add("spring.datasource.password") { postgres.password }

@@ -96,6 +96,10 @@ enum class ServicePermission(
 
     // Grimoire D&D table at grimoire.jorisjonkers.dev, behind forward-auth; this entry is its only per-user gate.
     GRIMOIRE("grimoire"),
+
+    // The Findability Explorer at digital-strategy.jorisjonkers.dev runs its own OIDC flow; the
+    // grant is enforced at the authorize endpoint, and here too should forward-auth front the host.
+    FINDABILITY_EXPLORER("digital-strategy"),
     ;
 
     val subdomains: Set<String> = subdomains.toSet()
