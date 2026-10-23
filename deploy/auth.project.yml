@@ -3,14 +3,10 @@
 # product (deploy-kit spec/v1/examples/auth/auth.project.yml).
 #
 # The Project is `auth`, so the namespace derives as `auth-system`, where both already run.
-# It is still `legacy` (JorisJonkers-dev/estate platform.intent.yml): fleet-infra delivers it,
-# and the estate composes this file without delivering anything for it. Its fragment exists so
-# a Project on the estate path can sign in through auth and name it in `dependsOn`
-# (deploy-kit spec/v1/60-setup.md#handing-over-one-project-at-a-time). The handover revisits
-# every field here against the rendered diff.
-#
-# Each value below is read from the live objects. No env file: the old path still configures
-# both Processes, and nothing on the estate path renders them yet.
+# It moves from fleet-infra to the estate path in the three changes of deploy-kit
+# spec/v1/60-setup.md#handing-over-one-project-at-a-time (#80). Each value below is read from
+# the live objects, and each Process's environment from the old path's Deployment, in
+# env/<process>/base.env beside this file.
 
 apiVersion: intent.jorisjonkers.dev/v1
 kind: Project
@@ -107,6 +103,10 @@ applications:
             access: read
             delivery: env
             rotation: { tolerates: restart }
+          # Granted on the derived role, auth-system-auth-api, but not yet read through it:
+          # auth-api also reads transit/keys/auth-api-jwt for its JWKS, which no transit
+          # operation derives, so it logs in as the old path's role until deploy-kit can
+          # declare that read (env/auth-api/base.env, VAULT_KUBERNETES_ROLE).
           - engine: transit
             key: auth-api-jwt
             operations: [sign]
@@ -119,17 +119,18 @@ applications:
         runtime: static
 
         provides:
-          http: 80
+          http: 8080 # the unprivileged nginx: no capability to bind a port below 1024
 
         placement:
           memory: 192Mi
           cpu: 100m
 
-        writablePaths: [/var/cache/nginx, /var/run]
+        # The unprivileged nginx keeps its pid and temp files under /tmp.
+        writablePaths: [/tmp]
 
         probes:
-          readiness: { path: /, port: 80 }
-          liveness: { path: /, port: 80 }
+          readiness: { path: /, port: 8080 }
+          liveness: { path: /, port: 8080 }
 
         startupBudget: 30s
 
