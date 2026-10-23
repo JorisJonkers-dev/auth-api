@@ -27,7 +27,7 @@ fun buildGrimoireClient(secret: String): RegisteredClient =
         .build()
 
 // What a Vault template renders for a key that does not exist yet.
-private const val UNPROVISIONED_SECRET = "<no value>"
+internal const val UNPROVISIONED_SECRET = "<no value>"
 
 // Grimoire's client has no fallback secret: until its Vault key is provisioned the client is not
 // registered at all, rather than registered with a secret anybody could guess.

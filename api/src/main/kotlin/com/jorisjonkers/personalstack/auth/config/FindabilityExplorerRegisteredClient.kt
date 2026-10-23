@@ -8,6 +8,7 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 // The Findability Explorer at digital-strategy.jorisjonkers.dev: a confidential client that also
 // sends PKCE, the tribelt shape. It keeps the refresh token to re-read the roles claim, where
 // ROLE_ADMIN is its admin role; the FINDABILITY_EXPLORER grant is enforced at the authorize endpoint.
+// Built only through findabilityExplorerClientOrNull: there is no fallback secret.
 fun buildFindabilityExplorerClient(secret: String): RegisteredClient =
     RegisteredClient
         .withId(deterministicId("findability-explorer"))
@@ -27,3 +28,8 @@ fun buildFindabilityExplorerClient(secret: String): RegisteredClient =
         .clientSettings(noConsentSettings(requirePkce = true))
         .tokenSettings(defaultTokenSettings())
         .build()
+
+// No fallback secret, the grimoire shape: until its Vault key is provisioned the client is not
+// registered at all, rather than registered with a secret anybody could guess.
+fun findabilityExplorerClientOrNull(secret: String): RegisteredClient? =
+    secret.takeIf { it.isNotBlank() && it != UNPROVISIONED_SECRET }?.let(::buildFindabilityExplorerClient)

@@ -229,4 +229,16 @@ class RegisteredClientsTest {
             )
         assertThat(client.tokenSettings.isReuseRefreshTokens).isFalse
     }
+
+    @Test
+    fun `findability-explorer is registered only once a real secret is supplied`() {
+        assertThat(findabilityExplorerClientOrNull("s3cr3t-from-vault")?.clientId).isEqualTo("findability-explorer")
+        assertThat(findabilityExplorerClientOrNull("s3cr3t-from-vault")?.clientSecret)
+            .isEqualTo("{noop}s3cr3t-from-vault")
+        // No secret: nothing is registered, so there is never a client with a guessable one.
+        assertThat(findabilityExplorerClientOrNull("")).isNull()
+        assertThat(findabilityExplorerClientOrNull("   ")).isNull()
+        // What the Vault template renders for a key that is not provisioned yet.
+        assertThat(findabilityExplorerClientOrNull("<no value>")).isNull()
+    }
 }
