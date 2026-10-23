@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.19.0...v0.20.0) (2026-10-23)
+
+
+### Features
+
+* configure auth-api and auth-ui for the estate path ([#113](https://github.com/JorisJonkers-dev/auth-api/issues/113)) ([51a13d4](https://github.com/JorisJonkers-dev/auth-api/commit/51a13d49b49574882438bd40d7e35ba7ab4b1281))
+
 ## [0.19.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.18.0...v0.19.0) (2026-10-23)
 
 
