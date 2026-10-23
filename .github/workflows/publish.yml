@@ -106,9 +106,11 @@ jobs:
         # Application (deploy/auth.project.yml). Each with the numeric user it
         # runs as, read back from what was pushed rather than assumed
         # (deploy-kit spec/v1/20-resolved-deployment.md#the-images-lock). An
-        # image that names no user runs as root, 0, as both do today, which the
-        # shared resolve-image-lock step refuses, so this lock stays here. Each
-        # entry's version is its own release's (JorisJonkers-dev/workspace#140).
+        # image that names no user runs as root, and a root image is refused
+        # here: deploy-kit 0.31 renders its uid 0 beside runAsNonRoot, which the
+        # kubelet refuses at pod start, so a lock naming one would take sign-in
+        # down on the estate path. Each entry's version is its own release's
+        # (JorisJonkers-dev/workspace#140).
         env:
           GH_TOKEN: ${{ github.token }}
           API_IMAGE: ghcr.io/jorisjonkers-dev/auth-api/auth-api
@@ -123,7 +125,7 @@ jobs:
             named="$(docker buildx imagetools inspect "$1" --format '{{ json .Image }}' \
               | jq -r 'if has("linux/amd64") then .["linux/amd64"] else . end | .config.User // ""')"
             case "$named" in
-              ""|root|0) echo "0:0" ;;
+              ""|root|0|0:*) echo "::error::$1 runs as root; the estate path runs only a non-root image" >&2; return 1 ;;
               *[!0-9:]*) echo "::error::$1 runs as '${named}', not a numeric uid[:gid]" >&2; return 1 ;;
               *:*) echo "$named" ;;
               *) echo "${named}:${named}" ;;

@@ -92,4 +92,10 @@ COPY --from=build /app/api/build/libs/*.jar app.jar
 COPY --from=otel /otel-javaagent.jar otel-javaagent.jar
 COPY entrypoint.sh /app/entrypoint.sh
 EXPOSE 8081
+# A numeric user, so the image runs as non-root wherever it runs: the estate path's
+# restricted posture sets runAsNonRoot and runs the uid the images lock reads from
+# here, and a root image there is refused at pod start
+# (deploy-kit spec/v1/20-resolved-deployment.md#the-images-lock). The JVM writes only
+# /tmp, which the render mounts writable.
+USER 65532:65532
 ENTRYPOINT ["/app/entrypoint.sh", "-javaagent:otel-javaagent.jar", "-jar", "app.jar"]
