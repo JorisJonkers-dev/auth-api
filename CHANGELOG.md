@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.2](https://github.com/JorisJonkers-dev/auth-api/compare/v0.21.1...v0.21.2) (2026-10-27)
+
+
+### Bug Fixes
+
+* **deploy:** grant read on the transit key auth-api's JWKS reads ([#123](https://github.com/JorisJonkers-dev/auth-api/issues/123)) ([c2689e0](https://github.com/JorisJonkers-dev/auth-api/commit/c2689e0ebec031f411f11a49e5aa1c75adab5dff))
+
 ## [0.21.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.21.0...v0.21.1) (2026-10-27)
 
 
