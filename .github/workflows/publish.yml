@@ -210,6 +210,8 @@ jobs:
     uses: JorisJonkers-dev/github-workflows/.github/workflows/publish-fragment.yml@16d241e44f03c5cc4696d2d0de615717a61ef3c0 # v0.36.0
     with:
       project-file: deploy/auth.project.yml
+      # The env files wire the Vault client the transit grant needs.
+      validate-with: deploy/env
       version: ${{ github.ref_name }}
       images-lock-artifact: ${{ needs.resolve-image-lock.outputs.fragment-images-lock-artifact }}
     secrets:
