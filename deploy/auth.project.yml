@@ -102,13 +102,11 @@ applications:
             access: read
             delivery: env
             rotation: { tolerates: restart }
-          # Granted on the derived role, auth-system-auth-api, but not yet read through it:
-          # auth-api also reads transit/keys/auth-api-jwt for its JWKS, which no transit
-          # operation derives, so it logs in as the old path's role until deploy-kit can
-          # declare that read (env/auth-api/base.env, VAULT_KUBERNETES_ROLE).
+          # Signs its tokens, and reads the key's public part for its JWKS
+          # (transit/keys/auth-api-jwt), on the derived role auth-system-auth-api.
           - engine: transit
             key: auth-api-jwt
-            operations: [sign]
+            operations: [sign, read]
             delivery: self
             rotation: { tolerates: reload }
 
