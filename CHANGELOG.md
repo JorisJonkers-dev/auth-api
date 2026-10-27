@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.21.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.20.0...v0.21.0) (2026-10-27)
+
+
+### Features
+
+* **deploy:** publish on deploy-kit 1.0 ([#120](https://github.com/JorisJonkers-dev/auth-api/issues/120)) ([50a05d1](https://github.com/JorisJonkers-dev/auth-api/commit/50a05d16c1051cb737da0e550902bf77f4cfc80a)), closes [#119](https://github.com/JorisJonkers-dev/auth-api/issues/119)
+
+
+### Bug Fixes
+
+* **deploy:** drop alertClass, which deploy-kit 1.0 removes ([#116](https://github.com/JorisJonkers-dev/auth-api/issues/116)) ([9be5ed8](https://github.com/JorisJonkers-dev/auth-api/commit/9be5ed8d0998b9a3beb42f9c6aacf4c42e7550b9))
+
+
+### Reverts
+
+* keep alertClass until the toolkit is deploy-kit 1.0 ([#118](https://github.com/JorisJonkers-dev/auth-api/issues/118)) ([ea4eb2f](https://github.com/JorisJonkers-dev/auth-api/commit/ea4eb2fd68e973f41daecc64c4c8a5457822bb79))
+
 ## [0.20.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.19.0...v0.20.0) (2026-10-23)
 
 
