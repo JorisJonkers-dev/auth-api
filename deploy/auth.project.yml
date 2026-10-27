@@ -21,7 +21,6 @@ applications:
     migration: self
 
     observability:
-      alertClass: page # every forward-auth route depends on it
       scrape:
         process: auth-api
         surface: http
