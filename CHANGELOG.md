@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.21.0...v0.21.1) (2026-10-27)
+
+
+### Bug Fixes
+
+* **deploy:** validate the project file with its env files when publishing ([#121](https://github.com/JorisJonkers-dev/auth-api/issues/121)) ([3680745](https://github.com/JorisJonkers-dev/auth-api/commit/3680745dfb8be2ad2b0abd56f63611896c92519b))
+
 ## [0.21.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.20.0...v0.21.0) (2026-10-27)
 
 
