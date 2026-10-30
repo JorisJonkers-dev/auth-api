@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.4](https://github.com/JorisJonkers-dev/auth-api/compare/v0.21.3...v0.21.4) (2026-10-30)
+
+
+### Bug Fixes
+
+* **deploy:** give auth-ui a 120s startup budget, so a cold start on a Pi passes its canary ([#130](https://github.com/JorisJonkers-dev/auth-api/issues/130)) ([ff4b285](https://github.com/JorisJonkers-dev/auth-api/commit/ff4b28585873a1d3b44524a8283a82b9b993ca6d))
+
 ## [0.21.3](https://github.com/JorisJonkers-dev/auth-api/compare/v0.21.2...v0.21.3) (2026-10-30)
 
 
