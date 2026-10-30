@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.3](https://github.com/JorisJonkers-dev/auth-api/compare/v0.21.2...v0.21.3) (2026-10-30)
+
+
+### Bug Fixes
+
+* **deploy:** right-size auth-api's memory request to its use ([#128](https://github.com/JorisJonkers-dev/auth-api/issues/128)) ([63e4c89](https://github.com/JorisJonkers-dev/auth-api/commit/63e4c89049eab5257f2dd2575795a902fd5a6af6))
+
 ## [0.21.2](https://github.com/JorisJonkers-dev/auth-api/compare/v0.21.1...v0.21.2) (2026-10-27)
 
 
