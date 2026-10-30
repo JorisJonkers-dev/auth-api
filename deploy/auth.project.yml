@@ -44,9 +44,10 @@ applications:
         provides:
           http: 8081
 
-        # The live pods request 2Gi and are limited at 4Gi; the model sets request to limit.
+        # Each live pod uses about 800Mi; the model sets request to limit. The heap cap,
+        # MaxRAMPercentage=55 in JAVA_TOOL_OPTIONS, follows to about 1.1Gi.
         placement:
-          memory: 4Gi
+          memory: 2Gi
           cpu: 400m
 
         writablePaths: [/tmp]
