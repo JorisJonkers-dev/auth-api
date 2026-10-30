@@ -32,19 +32,19 @@ dependencies {
     // fires. Spring Boot 4 dropped the `spring-boot-starter-aop`
     // shortcut, so pull the underlying jars directly.
     implementation("org.springframework:spring-aop")
-    implementation("org.aspectj:aspectjweaver:1.9.25.1")
+    implementation("org.aspectj:aspectjweaver:1.9.26")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-authorization-server")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework.session:spring-session-data-redis")
     implementation("org.springframework.boot:spring-boot-starter-amqp")
     implementation("org.springframework.boot:spring-boot-starter-mail")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1")
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation("org.jooq:jooq")
-    implementation("tools.jackson.module:jackson-module-kotlin:3.1.4")
+    implementation("tools.jackson.module:jackson-module-kotlin:3.2.4")
     runtimeOnly("org.postgresql:postgresql")
     // Tracing runtime jars. With these on the classpath Spring Boot
     // activates micrometer-tracing + the OTLP exporter and starts shipping
