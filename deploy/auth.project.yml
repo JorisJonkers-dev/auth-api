@@ -130,6 +130,8 @@ applications:
           readiness: { path: /, port: 8080 }
           liveness: { path: /, port: 8080 }
 
-        startupBudget: 30s
+        # A cold start on a Raspberry Pi outlasted 30s and failed a canary, which rolled
+        # auth-api back with it.
+        startupBudget: 120s
 
         cutover: continuous
