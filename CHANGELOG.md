@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.5](https://github.com/JorisJonkers-dev/auth-api/compare/v0.21.4...v0.21.5) (2026-11-01)
+
+
+### Bug Fixes
+
+* **deploy:** reach Vault in secrets-system, where the secrets handover runs it ([#132](https://github.com/JorisJonkers-dev/auth-api/issues/132)) ([d045773](https://github.com/JorisJonkers-dev/auth-api/commit/d045773dd2ec4672bbbbf2384cd83c826413ecdc))
+
 ## [0.21.4](https://github.com/JorisJonkers-dev/auth-api/compare/v0.21.3...v0.21.4) (2026-10-30)
 
 
