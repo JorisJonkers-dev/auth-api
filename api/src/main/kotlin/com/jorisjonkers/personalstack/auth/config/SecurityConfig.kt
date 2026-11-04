@@ -106,6 +106,8 @@ class SecurityConfig(
             .securityMatcher("/api/v1/auth/verify")
             .cors { it.configurationSource(corsConfigurationSource) }
             .csrf { it.disable() }
+            // Anonymous hits must not create sessions: the entry point never reads the saved request.
+            .requestCache { it.disable() }
             .securityContext { it.securityContextRepository(HttpSessionSecurityContextRepository()) }
             .addFilterAfter(SessionRolesRefreshFilter(userRepository), SecurityContextHolderFilter::class.java)
             // Runs after the session context is loaded, so a Bearer token (CLI/agent)
@@ -129,6 +131,7 @@ class SecurityConfig(
     ): SecurityFilterChain {
         http
             .cors { it.configurationSource(corsConfigurationSource) }
+            .requestCache { it.disable() }
             .securityContext { it.securityContextRepository(HttpSessionSecurityContextRepository()) }
             .addFilterAfter(SessionRolesRefreshFilter(userRepository), SecurityContextHolderFilter::class.java)
             .csrf { configureCsrf(it) }
