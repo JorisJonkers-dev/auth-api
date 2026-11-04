@@ -330,6 +330,25 @@ class SecurityFilterChainRoutingIntegrationTest : IntegrationTestBase() {
         }
 
         @Test
+        fun `GET verify without auth redirects to login with the original url and creates no session`() {
+            val result =
+                mockMvc
+                    .get("/api/v1/auth/verify") {
+                        accept = MediaType.TEXT_HTML
+                        header("X-Forwarded-Proto", "https")
+                        header("X-Forwarded-Host", "app.example.test")
+                        header("X-Forwarded-Uri", "/dash?x=1")
+                    }.andReturn()
+
+            assertThat(result.response.status).isEqualTo(302)
+            assertThat(result.response.getHeader("Location"))
+                .contains("/login")
+                .contains("redirect=" + java.net.URLEncoder.encode("https://app.example.test/dash?x=1", Charsets.UTF_8))
+            assertThat(result.request.getSession(false)).describedAs("anonymous hit must not create a session").isNull()
+            assertThat(result.response.getHeaders("Set-Cookie")).noneMatch { it.startsWith("SESSION") }
+        }
+
+        @Test
         fun `GET verify with valid session returns 200 with user headers`() {
             val userId = UUID.randomUUID()
             mockMvc
