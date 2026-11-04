@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.6](https://github.com/JorisJonkers-dev/auth-api/compare/v0.21.5...v0.21.6) (2026-11-04)
+
+
+### Bug Fixes
+
+* **auth:** stop anonymous forward-auth requests from creating sessions ([#138](https://github.com/JorisJonkers-dev/auth-api/issues/138)) ([059a259](https://github.com/JorisJonkers-dev/auth-api/commit/059a259619ec0821eb8564cbc3b081520ecbf59c))
+
 ## [0.21.5](https://github.com/JorisJonkers-dev/auth-api/compare/v0.21.4...v0.21.5) (2026-11-01)
 
 
