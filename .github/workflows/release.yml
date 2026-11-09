@@ -49,12 +49,13 @@ jobs:
     name: Publish API Clients
     needs: [release-please]
     if: ${{ needs.release-please.outputs.release_created == 'true' }}
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/publish-api-clients.yml@ab93bf1c435304c5933ab33f9febe087ff8be214 # v0.43.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/publish-api-clients.yml@2e0d88483fbb70fdb54034c85e9930dec066f906 # v0.45.2
     permissions:
       contents: read
       packages: write
       id-token: write
     with:
+      require-package-proxy: true
       spec-path: client-spec/openapi/auth-api.json
       api-name: auth-api
       version: ${{ needs.release-please.outputs.tag_name }}
@@ -67,3 +68,4 @@ jobs:
     secrets:
       packages-token: ${{ secrets.GITHUB_TOKEN }}
       node-auth-token: ${{ secrets.GITHUB_TOKEN }}
+      PACKAGES_PROXY_TOKEN: ${{ secrets.PACKAGES_PROXY_TOKEN }}

@@ -20,14 +20,17 @@ permissions: {}
 jobs:
   # -- 1. Build and push the container image --------------------------------
   publish-image:
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/container-publish.yml@ab93bf1c435304c5933ab33f9febe087ff8be214 # v0.43.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/container-publish.yml@2e0d88483fbb70fdb54034c85e9930dec066f906 # v0.45.2
     with:
+      require-package-proxy: true
       platforms: linux/amd64,linux/arm64
       image-name: auth-api/auth-api
       version: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
     permissions:
       contents: read
       packages: write
+    secrets:
+      PACKAGES_PROXY_TOKEN: ${{ secrets.PACKAGES_PROXY_TOKEN }}
 
   # -- 2. Resolve the image lock (upload artifact, never path) --------------
   resolve-image-lock:
@@ -146,8 +149,9 @@ jobs:
       contents: read
       packages: write
       id-token: write
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/publish-fragment.yml@ab93bf1c435304c5933ab33f9febe087ff8be214 # v0.43.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/publish-fragment.yml@2e0d88483fbb70fdb54034c85e9930dec066f906 # v0.45.2
     with:
+      require-package-proxy: true
       project-file: deploy/auth.project.yml
       # The env files wire the Vault client the transit grant needs.
       validate-with: deploy/env
@@ -155,3 +159,4 @@ jobs:
       images-lock-artifact: ${{ needs.resolve-image-lock.outputs.fragment-images-lock-artifact }}
     secrets:
       ESTATE_DISPATCH_APP_PRIVATE_KEY: ${{ secrets.ESTATE_DISPATCH_APP_PRIVATE_KEY }}
+      PACKAGES_PROXY_TOKEN: ${{ secrets.PACKAGES_PROXY_TOKEN }}
