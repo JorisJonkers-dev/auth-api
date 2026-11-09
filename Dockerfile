@@ -12,25 +12,30 @@ COPY gradle/ gradle/
 COPY api/build.gradle.kts api/
 COPY client-spec/build.gradle.kts client-spec/
 COPY client-spec/openapi/auth-api.json client-spec/openapi/auth-api.json
+# Init script that routes Gradle through the packages proxy when the
+# packages-netrc secret is present; without it, it does nothing.
+COPY docker/packages-proxy.init.gradle.kts /opt/packages-proxy.init.gradle.kts
 
 # Resolve dependencies (cached unless build files change)
-RUN --mount=type=secret,id=github_token \
+RUN --mount=type=secret,id=packages-netrc,target=/run/secrets/packages-netrc,required=false \
+    --mount=type=secret,id=github_token \
     --mount=type=secret,id=github_actor \
     set -eu; \
     GITHUB_TOKEN="$(cat /run/secrets/github_token)"; \
     GITHUB_ACTOR="$(cat /run/secrets/github_actor)"; \
     export GITHUB_TOKEN GITHUB_ACTOR; \
-    gradle :api:dependencies --no-daemon || true
+    gradle -I /opt/packages-proxy.init.gradle.kts :api:dependencies --no-daemon || true
 
 # Layer 2: Copy source code and build
 COPY api/src/main/ api/src/main/
-RUN --mount=type=secret,id=github_token \
+RUN --mount=type=secret,id=packages-netrc,target=/run/secrets/packages-netrc,required=false \
+    --mount=type=secret,id=github_token \
     --mount=type=secret,id=github_actor \
     set -eu; \
     GITHUB_TOKEN="$(cat /run/secrets/github_token)"; \
     GITHUB_ACTOR="$(cat /run/secrets/github_actor)"; \
     export GITHUB_TOKEN GITHUB_ACTOR; \
-    gradle :api:bootJar --no-daemon
+    gradle -I /opt/packages-proxy.init.gradle.kts :api:bootJar --no-daemon
 
 # Eclipse Temurin only used here for the otel jar download — its alpine
 # variant has curl out of the box and is small. The runtime stage has
