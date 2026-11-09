@@ -34,7 +34,7 @@ jobs:
         run: '${{ steps.actionlint.outputs.executable }} -color .github/workflows/*.yml'
 
   jvm:
-    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@f8f0a5ae583913de18143bbbbe0db9ecab970435' # v0.45.0
+    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/jvm-ci.yml@183d218b87bcbbc2a21dddd51340828fb8cbc027' # v0.45.0
     with:
       require-package-proxy: true
       lint-gradle-args: ':api:detektMain :api:detektTest :api:detektIntegrationTest :api:ktlintCheck'
@@ -49,7 +49,7 @@ jobs:
 
   client-dry-run:
     name: 'Client Dry Run'
-    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/publish-api-clients.yml@f8f0a5ae583913de18143bbbbe0db9ecab970435' # v0.45.0
+    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/publish-api-clients.yml@183d218b87bcbbc2a21dddd51340828fb8cbc027' # v0.45.0
     permissions:
       contents: 'read'
       packages: 'write'
@@ -81,7 +81,7 @@ jobs:
     steps:
       - uses: 'actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803' # v6.1.0
 
-      - uses: 'JorisJonkers-dev/github-workflows/actions/setup-java-gradle@f8f0a5ae583913de18143bbbbe0db9ecab970435' # v0.45.0
+      - uses: 'JorisJonkers-dev/github-workflows/actions/setup-java-gradle@183d218b87bcbbc2a21dddd51340828fb8cbc027' # v0.45.0
         with:
           require-package-proxy: true
           java-version: '21.0.12+8.0.LTS'
@@ -99,7 +99,7 @@ jobs:
   docker:
     needs:
       - 'jvm'
-    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/docker-image-ci.yml@f8f0a5ae583913de18143bbbbe0db9ecab970435' # v0.45.0
+    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/docker-image-ci.yml@183d218b87bcbbc2a21dddd51340828fb8cbc027' # v0.45.0
     with:
       require-package-proxy: true
       image-name: 'auth-api/auth-api'
@@ -112,7 +112,7 @@ jobs:
       PACKAGES_PROXY_TOKEN: '${{ secrets.PACKAGES_PROXY_TOKEN }}'
 
   migration-guard:
-    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/migration-guard.yml@f8f0a5ae583913de18143bbbbe0db9ecab970435' # v0.45.0
+    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/migration-guard.yml@183d218b87bcbbc2a21dddd51340828fb8cbc027' # v0.45.0
     with:
       base-ref: '${{ github.head_ref == ''feat/migrate-jorisjonkers'' && github.event.pull_request.head.sha || '''' }}'
       migration-regex: '^api/src/main/resources/db/migration/V[0-9]+(?:_[0-9]+)*__[^/]+\.sql$'

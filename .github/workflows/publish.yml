@@ -20,7 +20,7 @@ permissions: {}
 jobs:
   # -- 1. Build and push the container image --------------------------------
   publish-image:
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/container-publish.yml@f8f0a5ae583913de18143bbbbe0db9ecab970435 # v0.45.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/container-publish.yml@183d218b87bcbbc2a21dddd51340828fb8cbc027 # v0.45.1
     with:
       require-package-proxy: true
       platforms: linux/amd64,linux/arm64
@@ -149,7 +149,7 @@ jobs:
       contents: read
       packages: write
       id-token: write
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/publish-fragment.yml@f8f0a5ae583913de18143bbbbe0db9ecab970435 # v0.45.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/publish-fragment.yml@183d218b87bcbbc2a21dddd51340828fb8cbc027 # v0.45.1
     with:
       require-package-proxy: true
       project-file: deploy/auth.project.yml
