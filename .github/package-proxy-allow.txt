@@ -1,0 +1,1 @@
+settings.gradle.kts replaced by the package-proxy Gradle init script in CI and on workstations

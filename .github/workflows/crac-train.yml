@@ -9,8 +9,9 @@ permissions:
 
 jobs:
   train:
-    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/crac-train.yml@ab93bf1c435304c5933ab33f9febe087ff8be214' # v0.43.0
+    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/crac-train.yml@f8f0a5ae583913de18143bbbbe0db9ecab970435' # v0.45.0
     with:
+      require-package-proxy: true
       service-matrix: >-
         [
           {
@@ -26,3 +27,4 @@ jobs:
         ]
     secrets:
       packages-token: '${{ secrets.GITHUB_TOKEN }}'
+      PACKAGES_PROXY_TOKEN: '${{ secrets.PACKAGES_PROXY_TOKEN }}'
