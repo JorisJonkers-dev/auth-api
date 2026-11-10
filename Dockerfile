@@ -42,7 +42,15 @@ RUN --mount=type=secret,id=packages-netrc,target=/run/secrets/packages-netrc,req
 # moved to BellSoft Liberica below.
 # Only downloads a jar, so likewise native.
 FROM --platform=$BUILDPLATFORM eclipse-temurin:25-jre-alpine AS otel
-RUN apk add --no-cache curl && \
+# apk installs through the package proxy when the build has its packages-netrc secret (CI); without it, from Alpine's own mirrors.
+RUN --mount=type=secret,id=packages-netrc,target=/root/.netrc,required=false \
+    set -e; \
+    repos=""; \
+    if [ -s /root/.netrc ]; then \
+      v=$(cut -d. -f1,2 /etc/alpine-release); \
+      repos="--repositories-file /dev/null --repository https://packages.jorisjonkers.dev/apk/alpine/v$v/main --repository https://packages.jorisjonkers.dev/apk/alpine/v$v/community"; \
+    fi; \
+    apk add --no-cache $repos curl && \
     curl -fsSL -o /otel-javaagent.jar \
     "https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.26.1/opentelemetry-javaagent.jar"
 
