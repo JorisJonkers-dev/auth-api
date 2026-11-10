@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   train:
-    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/crac-train.yml@2814b76fc3f5bd4f02a6e4a0fa789f1307757daa' # v0.45.4
+    uses: 'JorisJonkers-dev/github-workflows/.github/workflows/crac-train.yml@38aa4e9ea4a2adfdcfc210967f540023e05bca07' # v0.48.0
     with:
       require-package-proxy: true
       service-matrix: >-
