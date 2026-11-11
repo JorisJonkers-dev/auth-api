@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.21.6...v0.22.0) (2026-11-11)
+
+
+### Features
+
+* **auth:** add the LITELLM service permission for the LiteLLM edge ([#150](https://github.com/JorisJonkers-dev/auth-api/issues/150)) ([a430d3e](https://github.com/JorisJonkers-dev/auth-api/commit/a430d3ece30422330f943668fd6d888bd2731428))
+
 ## [0.21.6](https://github.com/JorisJonkers-dev/auth-api/compare/v0.21.5...v0.21.6) (2026-11-04)
 
 
