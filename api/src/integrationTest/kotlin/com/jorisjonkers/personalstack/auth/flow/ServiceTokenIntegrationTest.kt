@@ -142,18 +142,19 @@ class ServiceTokenIntegrationTest : IntegrationTestBase() {
     fun `LITELLM token mints for a grantee, passes on the litellm host and not on another service host`() {
         userRepository.saveServicePermissions(testUser.id, setOf(ServicePermission.LITELLM))
 
-        mockMvc
-            .post("/api/v1/auth/service-tokens") {
-                with(authenticatedAs(testUser.id))
-                with(csrf())
-                contentType = MediaType.APPLICATION_JSON
-                content = """{"service":"LITELLM","label":"workstation"}"""
-            }.andExpect {
-                status { isCreated() }
-                jsonPath("$.service") { value("LITELLM") }
-            }
-
-        val token = mintToken(testUser.id, "LITELLM", "workstation")
+        val result =
+            mockMvc
+                .post("/api/v1/auth/service-tokens") {
+                    with(authenticatedAs(testUser.id))
+                    with(csrf())
+                    contentType = MediaType.APPLICATION_JSON
+                    content = """{"service":"LITELLM","label":"workstation"}"""
+                }.andExpect {
+                    status { isCreated() }
+                    jsonPath("$.service") { value("LITELLM") }
+                    jsonPath("$.token") { value(org.hamcrest.Matchers.startsWith("smt_")) }
+                }.andReturn()
+        val token = objectMapper.readTree(result.response.contentAsString)["token"].asText()
 
         mockMvc
             .get("/api/v1/auth/verify") {
@@ -177,6 +178,14 @@ class ServiceTokenIntegrationTest : IntegrationTestBase() {
     fun `a token for another service is rejected on the litellm host`() {
         userRepository.saveServicePermissions(testUser.id, setOf(ServicePermission.MEMORY_API))
         val token = mintToken(testUser.id, "MEMORY_API", "laptop")
+
+        mockMvc
+            .get("/api/v1/auth/verify") {
+                header("Authorization", "Bearer $token")
+                header("X-Forwarded-Host", "hindsight-api.jorisjonkers.dev")
+            }.andExpect {
+                status { isOk() }
+            }
 
         mockMvc
             .get("/api/v1/auth/verify") {
