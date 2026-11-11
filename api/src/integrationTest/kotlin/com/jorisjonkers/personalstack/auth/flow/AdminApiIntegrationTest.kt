@@ -2,6 +2,7 @@ package com.jorisjonkers.personalstack.auth.flow
 
 import com.jorisjonkers.personalstack.auth.IntegrationTestBase
 import com.jorisjonkers.personalstack.auth.domain.model.Role
+import com.jorisjonkers.personalstack.auth.domain.model.ServicePermission
 import com.jorisjonkers.personalstack.auth.domain.model.User
 import com.jorisjonkers.personalstack.auth.domain.model.UserId
 import com.jorisjonkers.personalstack.auth.domain.port.UserRepository
@@ -127,6 +128,23 @@ class AdminApiIntegrationTest : IntegrationTestBase() {
         val updated = userRepository.findById(testUser.id)
         assertThat(updated?.servicePermissions?.map { it.name })
             .containsExactlyInAnyOrder("VAULT", "GRAFANA")
+    }
+
+    @Test
+    fun `PUT services accepts LITELLM`() {
+        mockMvc
+            .put("/api/v1/admin/users/${testUser.id.value}/services") {
+                with(adminUser())
+                with(csrf())
+                contentType = MediaType.APPLICATION_JSON
+                content = """{"services":["LITELLM"]}"""
+            }.andExpect {
+                status { isOk() }
+                jsonPath("$.servicePermissions[0]") { value("LITELLM") }
+            }
+
+        assertThat(userRepository.findById(testUser.id)?.servicePermissions)
+            .containsExactly(ServicePermission.LITELLM)
     }
 
     @Test
