@@ -139,6 +139,55 @@ class ServiceTokenIntegrationTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `LITELLM token mints for a grantee, passes on the litellm host and not on another service host`() {
+        userRepository.saveServicePermissions(testUser.id, setOf(ServicePermission.LITELLM))
+
+        mockMvc
+            .post("/api/v1/auth/service-tokens") {
+                with(authenticatedAs(testUser.id))
+                with(csrf())
+                contentType = MediaType.APPLICATION_JSON
+                content = """{"service":"LITELLM","label":"workstation"}"""
+            }.andExpect {
+                status { isCreated() }
+                jsonPath("$.service") { value("LITELLM") }
+            }
+
+        val token = mintToken(testUser.id, "LITELLM", "workstation")
+
+        mockMvc
+            .get("/api/v1/auth/verify") {
+                header("Authorization", "Bearer $token")
+                header("X-Forwarded-Host", "litellm.jorisjonkers.dev")
+            }.andExpect {
+                status { isOk() }
+                header { string("X-User-Roles", "SERVICE_LITELLM") }
+            }
+
+        mockMvc
+            .get("/api/v1/auth/verify") {
+                header("Authorization", "Bearer $token")
+                header("X-Forwarded-Host", "hindsight-api.jorisjonkers.dev")
+            }.andExpect {
+                status { isForbidden() }
+            }
+    }
+
+    @Test
+    fun `a token for another service is rejected on the litellm host`() {
+        userRepository.saveServicePermissions(testUser.id, setOf(ServicePermission.MEMORY_API))
+        val token = mintToken(testUser.id, "MEMORY_API", "laptop")
+
+        mockMvc
+            .get("/api/v1/auth/verify") {
+                header("Authorization", "Bearer $token")
+                header("X-Forwarded-Host", "litellm.jorisjonkers.dev")
+            }.andExpect {
+                status { isForbidden() }
+            }
+    }
+
+    @Test
     fun `private token authorizes only the private host`() {
         userRepository.saveServicePermissions(testUser.id, setOf(ServicePermission.MEMORY_PRIVATE))
         val token = mintToken(testUser.id, "MEMORY_PRIVATE", "laptop")

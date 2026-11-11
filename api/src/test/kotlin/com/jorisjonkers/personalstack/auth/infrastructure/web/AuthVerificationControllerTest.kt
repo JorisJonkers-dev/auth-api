@@ -141,6 +141,24 @@ class AuthVerificationControllerTest {
     }
 
     @Test
+    fun `service-token caller with the LITELLM grant is allowed on the litellm host`() {
+        val user = buildUserWithUuid(roles = listOf("SERVICE_LITELLM"), viaServiceToken = true)
+
+        val response = controller.verify(user, requestWithSession(), "litellm.jorisjonkers.dev")
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+    }
+
+    @Test
+    fun `service-token caller scoped to another service is rejected on the litellm host`() {
+        val user = buildUserWithUuid(roles = listOf("SERVICE_MEMORY_API"), viaServiceToken = true)
+
+        val response = controller.verify(user, requestWithSession(), "litellm.jorisjonkers.dev")
+
+        assertThat(response.statusCode).isEqualTo(HttpStatus.FORBIDDEN)
+    }
+
+    @Test
     fun `service-token caller is rejected when no X-Forwarded-Host is present`() {
         val user = buildUserWithUuid(roles = listOf("SERVICE_MEMORY_API"), viaServiceToken = true)
 

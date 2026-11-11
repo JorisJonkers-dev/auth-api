@@ -48,6 +48,8 @@ class ServicePermissionTest {
         "hindsight-private.jorisjonkers.dev, MEMORY_PRIVATE",
         "hindsight-api.jorisjonkers.dev, MEMORY_API",
         "memory-mcp.jorisjonkers.dev, MEMORY_MCP",
+        "litellm.jorisjonkers.dev, LITELLM",
+        "litellm.jorisjonkers.test, LITELLM",
     )
     fun `fromHost resolves production and local dev hostnames`(
         host: String,

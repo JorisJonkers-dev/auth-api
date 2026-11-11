@@ -100,6 +100,11 @@ enum class ServicePermission(
     // The Findability Explorer at digital-strategy.jorisjonkers.dev runs its own OIDC flow; the
     // grant is enforced at the authorize endpoint, and here too should forward-auth front the host.
     FINDABILITY_EXPLORER("digital-strategy"),
+
+    // The LiteLLM proxy at litellm.jorisjonkers.dev, behind forward-auth with service tokens so
+    // workstations can reach it headlessly. The caller's own LiteLLM virtual key travels in the
+    // x-litellm-api-key header, so it does not collide with the edge's Authorization bearer token.
+    LITELLM("litellm"),
     ;
 
     val subdomains: Set<String> = subdomains.toSet()
