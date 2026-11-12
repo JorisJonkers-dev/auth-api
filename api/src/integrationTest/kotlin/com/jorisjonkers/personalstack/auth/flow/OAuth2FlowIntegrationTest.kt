@@ -578,6 +578,14 @@ class OAuth2FlowIntegrationTest : IntegrationTestBase() {
         assertThat(findabilityExplorerClient.authorizationGrantTypes).contains(AuthorizationGrantType.REFRESH_TOKEN)
         assertThat(findabilityExplorerClient.scopes).contains(OidcScopes.OPENID, OidcScopes.PROFILE, OidcScopes.EMAIL)
 
+        val litellmClient = registeredClientRepository.findByClientId("litellm")
+        assertThat(litellmClient).isNotNull()
+        assertThat(litellmClient!!.redirectUris).containsExactlyInAnyOrder(
+            "https://litellm.jorisjonkers.dev/sso/callback",
+            "https://litellm.jorisjonkers.test/sso/callback",
+        )
+        assertThat(litellmClient.clientSettings.isRequireProofKey).isTrue()
+
         val grimoireClient = registeredClientRepository.findByClientId("grimoire")
         assertThat(grimoireClient).isNotNull()
         assertThat(grimoireClient!!.redirectUris).contains("https://grimoire.jorisjonkers.test/oidc/callback")

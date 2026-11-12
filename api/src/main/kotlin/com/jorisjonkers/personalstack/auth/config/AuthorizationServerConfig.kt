@@ -167,6 +167,8 @@ class AuthorizationServerConfig(
         // No fallback either. Supplied as AUTH_CLIENTS_FINDABILITY_EXPLORER_SECRET; the
         // dash-dropping AUTH_CLIENTS_FINDABILITYEXPLORER_SECRET does not resolve it.
         @Value("\${auth.clients.findability-explorer.secret:}") findabilityExplorerSecret: String,
+        // No fallback either: the LiteLLM client is registered once its Vault key exists.
+        @Value("\${auth.clients.litellm.secret:}") litellmSecret: String,
     ): RegisteredClientRepository =
         InMemoryRegisteredClientRepository(
             listOfNotNull(
@@ -186,6 +188,7 @@ class AuthorizationServerConfig(
                 buildEstateDashboardClient(clientSecrets.estateDashboard),
                 grimoireClientOrNull(grimoireSecret),
                 findabilityExplorerClientOrNull(findabilityExplorerSecret),
+                litellmClientOrNull(litellmSecret),
             ),
         )
 
@@ -325,6 +328,9 @@ class AuthorizationServerConfig(
                 // from being issued to somebody without it.
                 "grimoire" to ServicePermission.GRIMOIRE,
                 "findability-explorer" to ServicePermission.FINDABILITY_EXPLORER,
+                // Only proxy admins use the UI; refusing here keeps a code from being issued to
+                // somebody without the grant, and LiteLLM maps only ROLE_ADMIN to proxy admin.
+                "litellm" to ServicePermission.LITELLM,
             )
     }
 }

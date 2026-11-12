@@ -81,6 +81,7 @@ applications:
               - auth.clients.findability-explorer.secret
               - auth.clients.grafana.secret
               - auth.clients.grimoire.secret
+              - auth.clients.litellm.secret
               - auth.clients.n8n.secret
               - auth.clients.outline.secret
               - auth.clients.tribelt.secret

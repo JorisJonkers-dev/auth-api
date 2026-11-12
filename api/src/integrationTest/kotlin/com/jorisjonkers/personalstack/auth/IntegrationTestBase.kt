@@ -63,6 +63,8 @@ abstract class IntegrationTestBase {
             registry.add("auth.clients.grimoire.secret") { "grimoire-secret" }
             // Nor does the findability-explorer client.
             registry.add("auth.clients.findability-explorer.secret") { "findability-explorer-secret" }
+            // And the litellm client.
+            registry.add("auth.clients.litellm.secret") { "litellm-secret" }
             registry.add("spring.datasource.url") { postgres.jdbcUrl }
             registry.add("spring.datasource.username") { postgres.username }
             registry.add("spring.datasource.password") { postgres.password }
