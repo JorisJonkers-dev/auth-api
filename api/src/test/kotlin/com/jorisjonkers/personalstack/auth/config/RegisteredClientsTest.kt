@@ -241,4 +241,35 @@ class RegisteredClientsTest {
         // What the Vault template renders for a key that is not provisioned yet.
         assertThat(findabilityExplorerClientOrNull("<no value>")).isNull()
     }
+
+    @Test
+    fun `litellm is a confidential PKCE client pinned to the proxy's SSO callback`() {
+        val client = buildLitellmClient("litellm-test-secret")
+
+        assertThat(client.clientId).isEqualTo("litellm")
+        assertThat(client.clientSecret).isEqualTo("{noop}litellm-test-secret")
+        assertThat(client.clientAuthenticationMethods)
+            .containsExactlyInAnyOrder(
+                ClientAuthenticationMethod.CLIENT_SECRET_BASIC,
+                ClientAuthenticationMethod.CLIENT_SECRET_POST,
+            )
+        assertThat(client.clientSettings.isRequireProofKey).isTrue
+        assertThat(client.clientSettings.isRequireAuthorizationConsent).isFalse
+        assertThat(client.authorizationGrantTypes).containsExactly(AuthorizationGrantType.AUTHORIZATION_CODE)
+        assertThat(client.scopes)
+            .containsExactlyInAnyOrder(OidcScopes.OPENID, OidcScopes.PROFILE, OidcScopes.EMAIL)
+        assertThat(client.redirectUris)
+            .containsExactlyInAnyOrder(
+                "https://litellm.jorisjonkers.dev/sso/callback",
+                "https://litellm.jorisjonkers.test/sso/callback",
+            )
+    }
+
+    @Test
+    fun `litellm is registered only once a real secret is supplied`() {
+        assertThat(litellmClientOrNull("s3cr3t-from-vault")?.clientId).isEqualTo("litellm")
+        assertThat(litellmClientOrNull("")).isNull()
+        assertThat(litellmClientOrNull("   ")).isNull()
+        assertThat(litellmClientOrNull("<no value>")).isNull()
+    }
 }
