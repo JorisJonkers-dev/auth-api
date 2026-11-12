@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.23.0...v0.23.1) (2026-11-12)
+
+
+### Bug Fixes
+
+* **hygiene:** never cancel a run of the required hygiene checks ([#156](https://github.com/JorisJonkers-dev/auth-api/issues/156)) ([6b03442](https://github.com/JorisJonkers-dev/auth-api/commit/6b034421ddab6e9bc414dc3dde8f8053803996e3))
+
 ## [0.23.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.22.0...v0.23.0) (2026-11-12)
 
 
