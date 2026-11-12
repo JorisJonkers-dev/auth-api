@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.22.0...v0.23.0) (2026-11-12)
+
+
+### Features
+
+* **auth:** register LiteLLM as an OIDC client for its admin UI ([#154](https://github.com/JorisJonkers-dev/auth-api/issues/154)) ([9eaf880](https://github.com/JorisJonkers-dev/auth-api/commit/9eaf88034601d1011950815747b668b00a2ac0b7))
+
 ## [0.22.0](https://github.com/JorisJonkers-dev/auth-api/compare/v0.21.6...v0.22.0) (2026-11-11)
 
 
