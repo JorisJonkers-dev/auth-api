@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.2](https://github.com/JorisJonkers-dev/auth-api/compare/v0.23.1...v0.23.2) (2026-11-18)
+
+
+### Bug Fixes
+
+* **deploy:** disable the Base64 intrinsic to mitigate CVE-2026-114938 ([#162](https://github.com/JorisJonkers-dev/auth-api/issues/162)) ([69a2814](https://github.com/JorisJonkers-dev/auth-api/commit/69a28146cdef6d18c307048fd66237ea639ac2f6))
+
 ## [0.23.1](https://github.com/JorisJonkers-dev/auth-api/compare/v0.23.0...v0.23.1) (2026-11-12)
 
 
