@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.3](https://github.com/JorisJonkers-dev/auth-api/compare/v0.23.2...v0.23.3) (2026-11-19)
+
+
+### Bug Fixes
+
+* **deploy:** ship auth-ui 0.7.3, which serves on nginx 1.31.9 ([#164](https://github.com/JorisJonkers-dev/auth-api/issues/164)) ([834b3ab](https://github.com/JorisJonkers-dev/auth-api/commit/834b3ab543a6de55209b4314be87d3e47e7768ac))
+
 ## [0.23.2](https://github.com/JorisJonkers-dev/auth-api/compare/v0.23.1...v0.23.2) (2026-11-18)
 
 
